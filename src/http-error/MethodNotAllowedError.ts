@@ -1,9 +1,9 @@
-import {RpcError} from "./RpcError";
+import { HttpError } from "./HttpError";
 
 /**
  * Exception for todo HTTP error.
  */
-export class MethodNotAllowedError extends RpcError {
+export class MethodNotAllowedError extends HttpError {
     name = "MethodNotAllowedError";
 
     constructor(message?: string) {

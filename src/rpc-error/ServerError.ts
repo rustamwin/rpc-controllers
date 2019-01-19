@@ -3,12 +3,12 @@ import {RpcError} from "./RpcError";
 /**
  * Exception for 500 HTTP error.
  */
-export class InternalServerError extends RpcError {
-    name = "InternalServerError";
+export class ServerError extends RpcError {
+    name = "ServerError";
 
     constructor(message: string) {
-        super(500);
-        Object.setPrototypeOf(this, InternalServerError.prototype);
+        super(-32000);
+        Object.setPrototypeOf(this, ServerError.prototype);
 
         if (message)
             this.message = message;

@@ -14,14 +14,14 @@
  */
 export class RpcError extends Error {
 
-    httpCode: number;
+    rpcCode: number;
 
-    constructor(httpCode: number, message?: string) {
+    constructor(rpcCode: number, message?: string) {
         super();
         Object.setPrototypeOf(this, RpcError.prototype);
         
-        if (httpCode)
-            this.httpCode = httpCode;
+        if (rpcCode)
+            this.rpcCode = rpcCode;
         if (message)
             this.message = message;
 

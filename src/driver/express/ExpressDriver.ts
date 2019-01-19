@@ -63,7 +63,7 @@ export class ExpressDriver extends BaseDriver {
         };
 
         // finally register action in express
-        this.express(...[
+        this.express.post(...[
             route,
             ...defaultMiddlewares,
             routeHandler,
@@ -82,44 +82,12 @@ export class ExpressDriver extends BaseDriver {
     getParamFromRequest(action: Method, param: ParamMetadata): any {
         const request: any = action.request;
         switch (param.type) {
-            case "body":
-                return request.body;
-
-            case "body-param":
-                return request.body[param.name];
-
             case "param":
-                return request.params[param.name];
+                return request.body.params[param.name];
 
             case "params":
-                return request.params;
+                return request.body.params;
 
-            case "session":
-                if (param.name)
-                    return request.session[param.name];
-
-                return request.session;
-
-            case "state":
-                throw new Error("@State decorators are not supported by express driver.");
-
-            case "query":
-                return request.query[param.name];
-
-            case "queries":
-                return request.query;
-
-            case "header":
-                return request.headers[param.name.toLowerCase()];
-
-            case "headers":
-                return request.headers;
-
-            case "file":
-                return request.file;
-
-            case "files":
-                return request.files;
         }
     }
 

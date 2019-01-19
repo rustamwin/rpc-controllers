@@ -12,10 +12,5 @@ export interface ControllerMetadataArgs {
      * Base name for all actions registered in this controller.
      */
     name: string;
-
-    /**
-     * Controller type. Can be default or json-typed. Json-typed controllers operate with json requests and responses.
-     */
-    type: "default"|"json";
     
 }

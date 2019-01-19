@@ -61,7 +61,7 @@ export * from "./container";
 // export * from "./decorator-options/UploadOptions";
 
 export * from "./rpc-error/RpcError";
-export * from "./rpc-error/InternalServerError";
+export * from "./rpc-error/ServerError";
 
 export * from "./metadata-builder/MetadataArgsStorage";
 export * from "./metadata/MethodMetadata";
@@ -85,10 +85,10 @@ export * from "./driver/koa/KoaDriver";
  * Metadata args storage follows the best practices and stores metadata in a global variable.
  */
 export function getMetadataArgsStorage(): MetadataArgsStorage {
-    if (!(global as any).routingControllersMetadataArgsStorage)
-        (global as any).routingControllersMetadataArgsStorage = new MetadataArgsStorage();
+    if (!(global as any).tsRpcMetadataArgsStorage)
+        (global as any).tsRpcMetadataArgsStorage = new MetadataArgsStorage();
 
-    return (global as any).routingControllersMetadataArgsStorage;
+    return (global as any).tsRpcMetadataArgsStorage;
 }
 
 /**
@@ -148,12 +148,6 @@ export function createExecutor<T extends BaseDriver>(driver: T, options: Applica
         driver.developmentMode = options.development;
     } else {
         driver.developmentMode = process.env.NODE_ENV !== "production";
-    }
-
-    if (options.defaultErrorHandler !== undefined) {
-        driver.isDefaultErrorHandlingEnabled = options.defaultErrorHandler;
-    } else {
-        driver.isDefaultErrorHandlingEnabled = true;
     }
 
     if (options.classTransformer !== undefined) {

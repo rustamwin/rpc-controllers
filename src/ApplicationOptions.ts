@@ -23,16 +23,6 @@ export interface ApplicationOptions {
     controllers?: Function[]|string[];
 
     /**
-     * List of middlewares to register in the framework or directories from where to import all your middlewares.
-     */
-    middlewares?: Function[]|string[];
-
-    /**
-     * List of interceptors to register in the framework or directories from where to import all your interceptors.
-     */
-    interceptors?: Function[]|string[];
-
-    /**
      * Indicates if class-transformer should be used to perform serialization / deserialization.
      */
     classTransformer?: boolean;
@@ -60,12 +50,6 @@ export interface ApplicationOptions {
      * By default its enabled if your NODE_ENV is not equal to "production".
      */
     development?: boolean;
-
-    /**
-     * Indicates if default routing-controller's error handler is enabled or not.
-     * Enabled by default.
-     */
-    defaultErrorHandler?: boolean;
 
     /**
      * Map of error overrides.

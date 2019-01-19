@@ -119,11 +119,6 @@ export class MethodMetadata {
         const undefinedResultHandler = responseHandlers.find(handler => handler.type === "on-undefined");
         const nullResultHandler = responseHandlers.find(handler => handler.type === "on-null");
         const successCodeHandler = responseHandlers.find(handler => handler.type === "success-code");
-        const redirectHandler = responseHandlers.find(handler => handler.type === "redirect");
-        const renderedTemplateHandler = responseHandlers.find(handler => handler.type === "rendered-template");
-        const authorizedHandler = responseHandlers.find(handler => handler.type === "authorized");
-        const contentTypeHandler = responseHandlers.find(handler => handler.type === "content-type");
-        const bodyParam = this.params.find(param => param.type === "body");
 
         if (classTransformerResponseHandler)
             this.responseClassTransformOptions = classTransformerResponseHandler.value;
