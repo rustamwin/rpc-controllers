@@ -1,4 +1,3 @@
-import {MethodType} from "../types/MethodType";
 import {Method} from "../../Method";
 import {MethodMetadata} from "../MethodMetadata";
 
@@ -16,17 +15,11 @@ export interface MethodMetadataArgs {
      * Class on which's method this method is attached.
      */
     target: Function;
-    
+
     /**
      * Object's method that will be executed on this method.
      */
     method: string;
-
-    /**
-     * Method type represents http method used for the registered name. Can be one of the value defined in MethodTypes
-     * class.
-     */
-    type: MethodType;
 
     /**
      * Params to be appended to the method call.
@@ -37,5 +30,5 @@ export interface MethodMetadataArgs {
      * Special function that will be called instead of orignal method of the target.
      */
     methodOverride?: (methodMetadata: MethodMetadata, method: Method, params: any[]) => Promise<any>|any;
-    
+
 }

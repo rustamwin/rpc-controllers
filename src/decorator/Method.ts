@@ -1,9 +1,8 @@
 import {getMetadataArgsStorage} from "../index";
 
-export function Method(name: string) {
+export function Method(name: string): Function {
     return function (object: Object, methodName: string) {
         getMetadataArgsStorage().methods.push({
-            type: "get",
             target: object.constructor,
             method: methodName,
             name: name

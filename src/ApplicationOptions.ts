@@ -52,11 +52,6 @@ export interface ApplicationOptions {
     development?: boolean;
 
     /**
-     * Map of error overrides.
-     */
-    errorOverridingMap?: { [key: string]: any };
-
-    /**
      * Default settings
      */
     defaults?: {

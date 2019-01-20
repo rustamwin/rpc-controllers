@@ -35,11 +35,10 @@ export class ControllerMetadata {
     // -------------------------------------------------------------------------
     // Constructor
     // -------------------------------------------------------------------------
-    
+
     constructor(args: ControllerMetadataArgs) {
         this.target = args.target;
         this.name = args.name;
-        this.type = args.type;
     }
 
     // -------------------------------------------------------------------------

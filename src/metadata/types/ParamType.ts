@@ -3,4 +3,5 @@
  */
 export type ParamType = "params"
     | "param"
-    | "request-id";
+    | "request-id"
+    | "method";

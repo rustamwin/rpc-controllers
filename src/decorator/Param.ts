@@ -1,7 +1,7 @@
 import {getMetadataArgsStorage} from "../index";
 import {ParamsOptions} from "../decorator-options/ParamsOptions";
 
-export function Param(name: string, options?: ParamsOptions) {
+export function Param(name: string, options?: ParamsOptions): Function {
     return function (object: Object, methodName: string, index: number) {
         getMetadataArgsStorage().params.push({
             type: "param",

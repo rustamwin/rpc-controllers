@@ -1,9 +1,12 @@
-import { MethodMetadata } from "../../metadata/MethodMetadata";
-import { Method } from "../../Method";
-import { ParamMetadata } from "../../metadata/ParamMetadata";
-import { BaseDriver } from "../BaseDriver";
-import { isPromiseLike } from "../../helpers/isPromiseLike";
-import { getFromContainer } from "../../container";
+import {MethodMetadata} from "../../metadata/MethodMetadata";
+import {Method} from "../../Method";
+import {ParamMetadata} from "../../metadata/ParamMetadata";
+import {BaseDriver} from "../BaseDriver";
+import {isPromiseLike} from "../../helpers/isPromiseLike";
+import {getFromContainer} from "../../container";
+import {MethodNotAllowedError} from "../../http-error/MethodNotAllowedError";
+import {RpcRequest} from "../../RpcRequest";
+import {InvalidParamsError} from "../../rpc-error/InvalidParamsError";
 
 /**
  * Integration with express framework.
@@ -56,14 +59,19 @@ export class ExpressDriver extends BaseDriver {
             // This causes a double action execution on our side, which results in an unhandled rejection,
             // saying: "Can't set headers after they are sent".
             // The following line skips action processing when the request method does not match the action method.
-            if (request.method.toLowerCase() !== methodMetadata.type)
-                return next();
+            if (request.method.toLowerCase() !== "post") {
+                return next(new MethodNotAllowedError());
+            } else if (!request.body.params) {
+                return next(new InvalidParamsError("safa"));
+            }
 
-            return executeCallback({ request, response, next });
+            console.log(request.body);
+
+            return executeCallback({request, response, next});
         };
 
         // finally register action in express
-        this.express.post(...[
+        this.express.use(...[
             route,
             ...defaultMiddlewares,
             routeHandler,
@@ -82,11 +90,18 @@ export class ExpressDriver extends BaseDriver {
     getParamFromRequest(action: Method, param: ParamMetadata): any {
         const request: any = action.request;
         switch (param.type) {
+            case "request-id":
+                return request.body.id;
+
+            case "method":
+                return request.body.method;
+
             case "param":
                 return request.body.params[param.name];
 
             case "params":
                 return request.body.params;
+
 
         }
     }
@@ -166,28 +181,29 @@ export class ExpressDriver extends BaseDriver {
      * Handles result of failed executed controller method.
      */
     handleError(error: any, method: MethodMetadata | undefined, options: Method): any {
-        if (this.isDefaultErrorHandlingEnabled) {
-            const response: any = options.response;
+        const response: any = options.response;
 
-            // set http code
-            // note that we can't use error instanceof HttpError properly anymore because of new typescript emit process
-            if (error.httpCode) {
-                response.status(error.httpCode);
-            } else {
-                response.status(500);
-            }
-
-            // apply http headers
-            if (method) {
-                Object.keys(method.headers).forEach(name => {
-                    response.header(name, method.headers[name]);
-                });
-            }
-
-            // send error content
-            response.json(this.processJsonError(error));
+        // set http code
+        // note that we can't use error instanceof HttpError properly anymore because of new typescript emit process
+        if (error.httpCode) {
+            response.status(error.httpCode);
+        } else {
+            response.status(500);
         }
-        options.next(error);
+
+        // apply http headers
+        if (method) {
+            Object.keys(method.headers).forEach(name => {
+                response.header(name, method.headers[name]);
+            });
+        }
+
+        // send error content
+        response.json({
+            "json-rpc": "2.0",
+            id: options.request.body.params.id,
+            error: this.processJsonError(error, options),
+        });
     }
 
     /**

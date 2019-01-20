@@ -1,8 +1,6 @@
 import { BaseDriver } from "./driver/BaseDriver";
-import { getFromContainer } from "./container";
 import { isPromiseLike } from "./helpers/isPromiseLike";
-import { runInSequence } from "./helpers/runInSequence";
-import { MethodParameterHandler } from "./MethodParameterHandler";
+import { MethodParamsHandler } from "./MethodParamsHandler";
 import { MetadataBuilder } from "./metadata-builder/MetadataBuilder";
 import { MethodMetadata } from "./metadata/MethodMetadata";
 import { Method } from "./Method";
@@ -15,9 +13,9 @@ export class Application<T extends BaseDriver> {
     // -------------------------------------------------------------------------
 
     /**
-     * Used to check and handle controller method parameters.
+     * Used to check and handle controller method params.
      */
-    private parameterHandler: MethodParameterHandler<T>;
+    private paramsHandler: MethodParamsHandler<T>;
 
     /**
      * Used to build metadata objects for controllers and middlewares.
@@ -29,7 +27,7 @@ export class Application<T extends BaseDriver> {
     // -------------------------------------------------------------------------
 
     constructor(private driver: T, private options: ApplicationOptions) {
-        this.parameterHandler = new MethodParameterHandler(driver);
+        this.paramsHandler = new MethodParamsHandler(driver);
         this.metadataBuilder = new MetadataBuilder(options);
     }
 
@@ -70,12 +68,12 @@ export class Application<T extends BaseDriver> {
      */
     protected executeMethod(methodMetadata: MethodMetadata, method: Method) {
 
-        // compute all parameters
+        // compute all params
         const paramsPromises = methodMetadata.params
             .sort((param1, param2) => param1.index - param2.index)
-            .map(param => this.parameterHandler.handle(method, param));
+            .map(param => this.paramsHandler.handle(method, param));
 
-        // after all parameters are computed
+        // after all params are computed
         return Promise.all(paramsPromises).then(params => {
 
             // execute method and handle result

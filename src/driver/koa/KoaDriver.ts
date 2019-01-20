@@ -42,14 +42,14 @@ export class KoaDriver extends BaseDriver {
     registerMethod(actionMetadata: MethodMetadata, executeCallback: (options: Method) => any): void {
 
         // prepare route and route handler function
-        const route = MethodMetadata.appendBaseRoute(this.routePrefix, actionMetadata.fullRoute);
+        const route = this.routePrefix + "*";
         const routeHandler = (context: any, next: () => Promise<any>) => {
             const options: Method = {request: context.request, response: context.response, context, next};
             return executeCallback(options);
         };
 
         // finally register action in koa
-        this.router[actionMetadata.type.toLowerCase()](...[
+        this.router.use(...[
             route,
             routeHandler,
         ]);
@@ -70,54 +70,18 @@ export class KoaDriver extends BaseDriver {
         const context = actionOptions.context;
         const request: any = actionOptions.request;
         switch (param.type) {
-            case "body":
-                return request.body;
+            case "method":
+                return request.body.method;
 
-            case "body-param":
-                return request.body[param.name];
+            case "request-id":
+                return request.body.id;
 
             case "param":
-                return context.params[param.name];
+                return request.body.params[param.name];
 
             case "params":
-                return context.params;
+                return request.body.params;
 
-            case "session":
-                if (param.name)
-                    return context.session[param.name];
-                return context.session;
-
-            case "state":
-                if (param.name)
-                    return context.state[param.name];
-                return context.state;
-
-            case "query":
-                return context.query[param.name];
-
-            case "queries":
-                return context.query;
-
-            case "file":
-                return actionOptions.context.req.file;
-
-            case "files":
-                return actionOptions.context.req.files;
-
-            case "header":
-                return context.headers[param.name.toLowerCase()];
-
-            case "headers":
-                return request.headers;
-
-            case "cookie":
-                if (!context.headers.cookie) return;
-                const cookies = cookie.parse(context.headers.cookie);
-                return cookies[param.name];
-
-            case "cookies":
-                if (!request.headers.cookie) return {};
-                return cookie.parse(request.headers.cookie);
         }
     }
 
@@ -145,7 +109,6 @@ export class KoaDriver extends BaseDriver {
         // todo send null response
 
         // todo set http status code
-        
 
         // apply http headers
         Object.keys(action.headers).forEach(name => {
@@ -170,10 +133,9 @@ export class KoaDriver extends BaseDriver {
                 }
 
                 // send error content
-                    options.response.body = this.processJsonError(error);
-                
+                options.response.body = this.processJsonError(error, options);
+
                 // todo set http status
-                
 
                 return resolve();
             }

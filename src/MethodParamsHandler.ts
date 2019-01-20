@@ -3,15 +3,15 @@ import { plainToClass } from "class-transformer";
 import { validateOrReject as validate, ValidationError } from "class-validator";
 import { Method } from "./Method";
 import { BaseDriver } from "./driver/BaseDriver";
-import { ParameterParseJsonError } from "./error/ParameterParseJsonError";
 import { ParamMetadata } from "./metadata/ParamMetadata";
-import { ParamRequiredError } from "./error/ParamRequiredError";
 import { isPromiseLike } from "./helpers/isPromiseLike";
+import {InvalidParamsError} from "./rpc-error/InvalidParamsError";
+import {ParseError} from "./rpc-error/ParseError";
 
 /**
- * Handles method parameter.
+ * Handles method params.
  */
-export class MethodParameterHandler<T extends BaseDriver> {
+export class MethodParamsHandler<T extends BaseDriver> {
 
     // -------------------------------------------------------------------------
     // Constructor
@@ -29,7 +29,7 @@ export class MethodParameterHandler<T extends BaseDriver> {
      */
     handle(method: Method, param: ParamMetadata): Promise<any> | any {
 
-        if (param.type === "request")
+       /* if (param.type === "request")
             return method.request;
 
         if (param.type === "response")
@@ -37,7 +37,7 @@ export class MethodParameterHandler<T extends BaseDriver> {
 
         if (param.type === "context")
             return method.context;
-
+*/
         // get parameter value from request and normalize it
         const value = this.normalizeParamValue(this.driver.getParamFromRequest(method, param), param);
         if (isPromiseLike(value))
@@ -64,11 +64,11 @@ export class MethodParameterHandler<T extends BaseDriver> {
             const isValueEmpty = value === null || value === undefined || value === "";
             const isValueEmptyObject = value instanceof Object && Object.keys(value).length === 0;
 
-            if (param.type === "body" && !param.name && (isValueEmpty || isValueEmptyObject)) { // body has a special check and error message
-                return Promise.reject(new ParamRequiredError(method, param));
+            if (param.type === "params" && !param.name && (isValueEmpty || isValueEmptyObject)) { // body has a special check and error message
+                return Promise.reject(new InvalidParamsError("Params empty"));
 
             } else if (param.name && isValueEmpty) { // regular check for all other parameters // todo: figure out something with param.name usage and multiple things params (query params, upload files etc.)
-                return Promise.reject(new ParamRequiredError(method, param));
+                return Promise.reject(new InvalidParamsError("method, param"));
             }
         }
 
@@ -125,7 +125,7 @@ export class MethodParameterHandler<T extends BaseDriver> {
             try {
                 return JSON.parse(value);
             } catch (error) {
-                throw new ParameterParseJsonError(paramMetadata.name, value);
+                throw new ParseError("");
             }
         }
 

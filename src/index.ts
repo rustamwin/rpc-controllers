@@ -168,9 +168,6 @@ export function createExecutor<T extends BaseDriver>(driver: T, options: Applica
     driver.classToPlainTransformOptions = options.classToPlainTransformOptions;
     driver.plainToClassTransformOptions = options.plainToClassTransformOptions;
 
-    if (options.errorOverridingMap !== undefined)
-        driver.errorOverridingMap = options.errorOverridingMap;
-
     if (options.routePrefix !== undefined)
         driver.routePrefix = options.routePrefix;
 
@@ -180,4 +177,5 @@ export function createExecutor<T extends BaseDriver>(driver: T, options: Applica
     new Application(driver, options)
         .initialize()
         .registerControllers(controllerClasses);
+    console.log(controllerClasses);
 }

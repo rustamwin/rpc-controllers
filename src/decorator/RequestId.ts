@@ -4,7 +4,7 @@ import {ParamsOptions} from "../decorator-options/ParamsOptions";
 export function RequestId(options?: ParamsOptions) {
     return function (object: Object, methodName: string, index: number) {
         getMetadataArgsStorage().params.push({
-            type: "body",
+            type: "request-id",
             object: object,
             method: methodName,
             index: index,

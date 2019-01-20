@@ -1,6 +1,5 @@
 import { Method } from "../Method";
 import { MethodMetadataArgs } from "./args/MethodMetadataArgs";
-import { MethodType } from "./types/MethodType";
 import { ClassTransformOptions } from "class-transformer";
 import { ControllerMetadata } from "./ControllerMetadata";
 import { ParamMetadata } from "./ParamMetadata";
@@ -37,12 +36,6 @@ export class MethodMetadata {
     method: string;
 
     /**
-     * Method type represents http method used for the registered name. Can be one of the value defined in MethodTypes
-     * class.
-     */
-    type: MethodType;
-
-    /**
      * Route to be registered for the method.
      */
     name: string | RegExp;
@@ -50,7 +43,7 @@ export class MethodMetadata {
     /**
      * Full name to this method (includes controller base name).
      */
-    fullRoute: string | RegExp;
+    fullName: string | RegExp;
 
     /**
      * Class-transformer options for the method response content.
@@ -101,7 +94,6 @@ export class MethodMetadata {
         this.name = args.name;
         this.target = args.target;
         this.method = args.method;
-        this.type = args.type;
         this.appendParams = args.appendParams;
         this.methodOverride = args.methodOverride;
     }
@@ -134,7 +126,7 @@ export class MethodMetadata {
         if (successCodeHandler)
             this.successHttpCode = successCodeHandler.value;
 
-        this.fullRoute = this.buildFullRoute();
+        this.fullName = this.buildFullName();
         this.headers = this.buildHeaders(responseHandlers);
     }
 
@@ -145,10 +137,10 @@ export class MethodMetadata {
     /**
      * Builds full method name.
      */
-    private buildFullRoute(): string | RegExp {
+    private buildFullName(): string | RegExp {
         if (this.name instanceof RegExp) {
             if (this.controllerMetadata.name) {
-                return MethodMetadata.appendBaseRoute(this.controllerMetadata.name, this.name);
+                return MethodMetadata.appendBaseName(this.controllerMetadata.name, this.name);
             }
             return this.name;
         }
@@ -197,12 +189,12 @@ export class MethodMetadata {
     /**
      * Appends base name to a given regexp name.
      */
-    static appendBaseRoute(baseRoute: string, name: RegExp | string) {
-        const prefix = `${baseRoute.length > 0 && baseRoute.indexOf("/") < 0 ? "/" : ""}${baseRoute}`;
+    static appendBaseName(baseName: string, name: RegExp | string) {
+        const prefix = `${baseName.length > 0 && baseName.indexOf("/") < 0 ? "/" : ""}${baseName}`;
         if (typeof name === "string")
             return `${prefix}${name}`;
 
-        if (!baseRoute || baseRoute === "") return name;
+        if (!baseName || baseName === "") return name;
 
         const fullPath = `^${prefix}${name.toString().substr(1)}?$`;
 

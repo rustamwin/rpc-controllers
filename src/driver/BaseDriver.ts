@@ -1,5 +1,5 @@
 import {ValidatorOptions} from "class-validator";
-import {ClassTransformOptions, classToPlain} from "class-transformer";
+import {classToPlain, ClassTransformOptions} from "class-transformer";
 
 import {MethodMetadata} from "../metadata/MethodMetadata";
 import {ParamMetadata} from "../metadata/ParamMetadata";
@@ -127,29 +127,25 @@ export abstract class BaseDriver {
         return result;
     }
 
-    protected processJsonError(error: any) {
-        
+    protected processJsonError(error: any, options: Method) {
+
         if (typeof error.toJSON === "function")
             return error.toJSON();
 
         let processedError: any = {};
-        if (error instanceof Error) {
-            const name = error.name && error.name !== "Error" ? error.name : error.constructor.name;
-            processedError.name = name;
+        if (error instanceof RpcError) {
+            processedError.name = error.name && error.name !== "RpcError" ? error.name : error.constructor.name;
 
             if (error.message)
                 processedError.message = error.message;
             if (error.stack && this.developmentMode)
-                processedError.stack = error.stack;
+                processedError.data.stack = error.stack;
 
             Object.keys(error)
-                .filter(key => key !== "stack" && key !== "name" && key !== "message" && (!(error instanceof RpcError) || key !== "httpCode"))
-                .forEach(key => processedError[key] = (error as any)[key]);
+                .filter(key => key !== "stack" && key !== "name" && key !== "message" && key !== "rpcCode")
+                .forEach(key => processedError.data[key] = (error as any)[key]);
 
-            if (this.errorOverridingMap)
-                Object.keys(this.errorOverridingMap)
-                    .filter(key => name === key)
-                    .forEach(key => processedError = this.merge(processedError, this.errorOverridingMap[key]));
+            // todo check server error
 
             return Object.keys(processedError).length > 0 ? processedError : undefined;
         }
