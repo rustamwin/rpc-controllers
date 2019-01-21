@@ -146,7 +146,7 @@ export class MethodMetadata {
         }
 
         let path: string = "";
-        if (this.controllerMetadata.name) path += this.controllerMetadata.name;
+        if (this.controllerMetadata.name) path += this.controllerMetadata.name + ".";
         if (this.name && typeof this.name === "string") path += this.name;
         return path;
     }

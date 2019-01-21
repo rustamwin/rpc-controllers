@@ -1,10 +1,11 @@
-import { BaseDriver } from "./driver/BaseDriver";
-import { isPromiseLike } from "./helpers/isPromiseLike";
-import { MethodParamsHandler } from "./MethodParamsHandler";
-import { MetadataBuilder } from "./metadata-builder/MetadataBuilder";
-import { MethodMetadata } from "./metadata/MethodMetadata";
-import { Method } from "./Method";
-import { ApplicationOptions } from "./ApplicationOptions";
+import {BaseDriver} from "./driver/BaseDriver";
+import {isPromiseLike} from "./helpers/isPromiseLike";
+import {MethodParamsHandler} from "./MethodParamsHandler";
+import {MetadataBuilder} from "./metadata-builder/MetadataBuilder";
+import {MethodMetadata} from "./metadata/MethodMetadata";
+import {Method} from "./Method";
+import {ApplicationOptions} from "./ApplicationOptions";
+import {MethodNotFoundError} from "./rpc-error/MethodNotFoundError";
 
 export class Application<T extends BaseDriver> {
 
@@ -22,6 +23,11 @@ export class Application<T extends BaseDriver> {
      */
     private metadataBuilder: MetadataBuilder;
 
+    /**
+     * Application methods
+     */
+    private methods: MethodMetadata[] = [];
+
     // -------------------------------------------------------------------------
     // Constructor
     // -------------------------------------------------------------------------
@@ -38,8 +44,12 @@ export class Application<T extends BaseDriver> {
     /**
      * Initializes the things driver needs before routes and middleware registration.
      */
-    initialize(): this {
+    initialize(classes?: Function[]): this {
         this.driver.initialize();
+        const controllers = this.metadataBuilder.buildControllerMetadata(classes);
+        controllers.forEach(controller => {
+            this.methods.push(...controller.methods);
+        });
         return this;
     }
 
@@ -47,21 +57,18 @@ export class Application<T extends BaseDriver> {
      * Registers all given controllers and methods from those controllers.
      */
     registerControllers(classes?: Function[]): this {
+        const methods: MethodMetadata[] = [];
         const controllers = this.metadataBuilder.buildControllerMetadata(classes);
         controllers.forEach(controller => {
-            controller.methods.forEach(methodMetadata => {
-                this.driver.registerMethod(methodMetadata, (method: Method) => {
-                    return this.executeMethod(methodMetadata, method);
-                });
-            });
+            methods.push(...controller.methods);
+        });
+        this.driver.registerMethod(methods, (methodMetadata: MethodMetadata, options: Method) => {
+
+            return this.executeMethod(methodMetadata, options);
         });
         this.driver.registerRoutes();
         return this;
     }
-
-    // -------------------------------------------------------------------------
-    // Protected Methods
-    // -------------------------------------------------------------------------
 
     /**
      * Executes given controller method.

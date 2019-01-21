@@ -13,16 +13,8 @@ import {ParseError} from "./rpc-error/ParseError";
  */
 export class MethodParamsHandler<T extends BaseDriver> {
 
-    // -------------------------------------------------------------------------
-    // Constructor
-    // -------------------------------------------------------------------------
-
     constructor(private driver: T) {
     }
-
-    // -------------------------------------------------------------------------
-    // Public Methods
-    // -------------------------------------------------------------------------
 
     /**
      * Handles method parameter.

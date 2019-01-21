@@ -12,10 +12,6 @@ import {RpcError} from "../rpc-error/RpcError";
  */
 export abstract class BaseDriver {
 
-    // -------------------------------------------------------------------------
-    // Public Properties
-    // -------------------------------------------------------------------------
-
     /**
      * Reference to the underlying framework app object.
      */
@@ -75,6 +71,11 @@ export abstract class BaseDriver {
     errorOverridingMap: {[key: string]: any};
 
     /**
+     * Methods
+     */
+    private methods: MethodMetadata[];
+
+    /**
      * Initializes the things driver needs before routes and middleware registration.
      */
     abstract initialize(): void;
@@ -82,7 +83,7 @@ export abstract class BaseDriver {
     /**
      * Registers action in the driver.
      */
-    abstract registerMethod(action: MethodMetadata, executeCallback: (options: Method) => any): void;
+    abstract registerMethod(methods: MethodMetadata[], executeCallback: (method: MethodMetadata, options: Method) => any): void;
 
     /**
      * Registers all routes in the framework.

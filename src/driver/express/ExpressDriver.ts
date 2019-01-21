@@ -7,6 +7,7 @@ import {getFromContainer} from "../../container";
 import {MethodNotAllowedError} from "../../http-error/MethodNotAllowedError";
 import {RpcRequest} from "../../RpcRequest";
 import {InvalidParamsError} from "../../rpc-error/InvalidParamsError";
+import {MethodNotFoundError} from "../../rpc-error/MethodNotFoundError";
 
 /**
  * Integration with express framework.
@@ -44,12 +45,12 @@ export class ExpressDriver extends BaseDriver {
     /**
      * Registers action in the driver.
      */
-    registerMethod(methodMetadata: MethodMetadata, executeCallback: (options: Method) => any): void {
+    registerMethod(methods: MethodMetadata[], executeCallback: (method: MethodMetadata, options: Method) => any): void {
 
         // middlewares required for this method
         const defaultMiddlewares: any[] = [];
 
-        defaultMiddlewares.push(this.loadBodyParser().json(methodMetadata.bodyExtraOptions));
+        defaultMiddlewares.push(this.loadBodyParser().json());
 
         // prepare route and route handler function
         const route = this.routePrefix + "*";
@@ -59,15 +60,17 @@ export class ExpressDriver extends BaseDriver {
             // This causes a double action execution on our side, which results in an unhandled rejection,
             // saying: "Can't set headers after they are sent".
             // The following line skips action processing when the request method does not match the action method.
+            const method: MethodMetadata = methods.find((methodMetadata) => methodMetadata.fullName === request.body.method);
             if (request.method.toLowerCase() !== "post") {
                 return next(new MethodNotAllowedError());
             } else if (!request.body.params) {
                 return next(new InvalidParamsError("safa"));
+
+            } else if (!request.body.method || !method) {
+
+                return next(new MethodNotFoundError());
             }
-
-            console.log(request.body);
-
-            return executeCallback({request, response, next});
+            return executeCallback(method, {request, response, next});
         };
 
         // finally register action in express
@@ -101,7 +104,6 @@ export class ExpressDriver extends BaseDriver {
 
             case "params":
                 return request.body.params;
-
 
         }
     }

@@ -175,7 +175,6 @@ export function createExecutor<T extends BaseDriver>(driver: T, options: Applica
 
     // next create a controller executor
     new Application(driver, options)
-        .initialize()
+        .initialize(controllerClasses)
         .registerControllers(controllerClasses);
-    console.log(controllerClasses);
 }
