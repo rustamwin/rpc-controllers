@@ -53,9 +53,10 @@ export class Application<T extends BaseDriver> {
         controllers.forEach(controller => {
             methods.push(...controller.methods);
         });
-        this.driver.registerMethod(methods, (methodMetadata: MethodMetadata, options: Method, error?: any) => {
-            if (error)
-                return this.driver.handleError(error, methodMetadata, options);
+        this.driver.registerMethod(methods, (error: any, options: Method, methodMetadata?: MethodMetadata) => {
+            if (error) {
+                return this.driver.handleError(error, options);
+            }
             return this.executeMethod(methodMetadata, options);
         });
         this.driver.registerRoutes();
@@ -82,7 +83,7 @@ export class Application<T extends BaseDriver> {
         }).catch(error => {
 
             // otherwise simply handle error without method execution
-            return this.driver.handleError(error, methodMetadata, method);
+            return this.driver.handleError(error, method);
         });
     }
 
@@ -96,7 +97,7 @@ export class Application<T extends BaseDriver> {
                     return this.handleCallMethodResult(data, method, options);
                 })
                 .catch((error: any) => {
-                    return this.driver.handleError(error, method, options);
+                    return this.driver.handleError(error, options);
                 });
         } else {
 

@@ -1,4 +1,4 @@
-export interface RpcRequest {
+export class RpcRequest {
     "json-rpc": string;
     id: string | number;
     method: string;

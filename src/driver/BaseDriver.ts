@@ -72,9 +72,9 @@ export abstract class BaseDriver {
     abstract initialize(): void;
 
     /**
-     * Registers action in the driver.
+     * Registers method in the driver.
      */
-    abstract registerMethod(methods: MethodMetadata[], executeCallback: (method: MethodMetadata, options: Method, error: any) => any): void;
+    abstract registerMethod(methods: MethodMetadata[], executeCallback: (error: any, options: Method, method?: MethodMetadata) => any): void;
 
     /**
      * Registers all routes in the framework.
@@ -84,23 +84,23 @@ export abstract class BaseDriver {
     /**
      * Gets param from the request.
      */
-    abstract getParamFromRequest(actionOptions: Method, param: ParamMetadata): any;
+    abstract getParamFromRequest(methodOptions: Method, param: ParamMetadata): any;
 
     /**
-     * Defines an algorithm of how to handle error during executing controller action.
+     * Defines an algorithm of how to handle error during executing controller method.
      */
-    abstract handleError(error: any, action: MethodMetadata, options: Method): any;
+    abstract handleError(error: any, options: Method): any;
 
     /**
-     * Defines an algorithm of how to handle success result of executing controller action.
+     * Defines an algorithm of how to handle success result of executing controller method.
      */
-    abstract handleSuccess(result: any, action: MethodMetadata, options: Method): void;
+    abstract handleSuccess(result: any, method: MethodMetadata, options: Method): void;
 
     // -------------------------------------------------------------------------
     // Protected Methods
     // -------------------------------------------------------------------------
 
-    protected transformResult(result: any, action: MethodMetadata, options: Method): any {
+    protected transformResult(result: any, method: MethodMetadata, options: Method): any {
         // check if we need to transform result
         const shouldTransform = (this.useClassTransformer && result != null) // transform only if enabled and value exist
             && result instanceof Object // don't transform primitive types (string/number/boolean)
@@ -112,7 +112,7 @@ export abstract class BaseDriver {
 
         // transform result if needed
         if (shouldTransform) {
-            const options = action.responseClassTransformOptions || this.classToPlainTransformOptions;
+            const options = method.responseClassTransformOptions || this.classToPlainTransformOptions;
             result = classToPlain(result, options);
         }
 

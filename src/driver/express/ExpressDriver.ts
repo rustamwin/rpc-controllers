@@ -5,6 +5,9 @@ import {BaseDriver} from "../BaseDriver";
 import {MethodNotAllowedError} from "../../http-error/MethodNotAllowedError";
 import {InvalidParamsError} from "../../rpc-error/InvalidParamsError";
 import {MethodNotFoundError} from "../../rpc-error/MethodNotFoundError";
+import {ParseError} from "../../rpc-error/ParseError";
+import {RpcRequest} from "../../RpcRequest";
+import {InvalidRequestError} from "../../rpc-error/InvalidRequestError";
 
 /**
  * Integration with express framework.
@@ -44,12 +47,19 @@ export class ExpressDriver extends BaseDriver {
     /**
      * Registers action in the driver.
      */
-    registerMethod(methods: MethodMetadata[], executeCallback: (method: MethodMetadata, options: Method, error?: any) => any): void {
+    registerMethod(methods: MethodMetadata[], executeCallback: (error: any, options: Method, method?: MethodMetadata) => any): void {
 
         // middlewares required for this method
         const defaultMiddlewares: any[] = [];
 
         defaultMiddlewares.push(this.loadBodyParser().json());
+
+        defaultMiddlewares.push(function (err: any, request: any, response: any, next: Function) {
+            if (err) {
+                console.log(err);
+                return executeCallback(new ParseError(), {request, response});
+            }
+        });
 
         // prepare route and route handler function
         const route = this.routePrefix + "*";
@@ -58,16 +68,22 @@ export class ExpressDriver extends BaseDriver {
             // todo batch requests
 
             const method: MethodMetadata = methods.find((methodMetadata) => methodMetadata.fullName === request.body.method);
+
             if (request.method.toLowerCase() !== "post") {
                 return next(method, options, new MethodNotAllowedError());
+            } else if (!request.body || typeof request.body !== "object") {
+                return executeCallback(new ParseError(), options, method);
+            } /*else if (!(request.body instanceof RpcRequest)) {
+                return executeCallback(new InvalidRequestError(), options, method);
+
+            } */else if (!request.body.method || !method) {
+
+                return executeCallback(new MethodNotFoundError(), options, method);
             } else if (typeof request.body.params !== "object" || !Array.isArray(request.body.params)) {
-                return executeCallback(method, options, new InvalidParamsError());
+                return executeCallback(new InvalidParamsError(), options, method);
 
-            } else if (!request.body.method || !method) {
-
-                return executeCallback(method, options, new MethodNotFoundError());
             }
-            return executeCallback(method, options);
+            return executeCallback(null, options, method);
         };
 
         // finally register method in express
@@ -155,18 +171,11 @@ export class ExpressDriver extends BaseDriver {
     /**
      * Handles result of failed executed controller method.
      */
-    handleError(error: any, method: MethodMetadata | undefined, options: Method): any {
+    handleError(error: any, options: Method): any {
         const response: any = options.response;
 
         // set http code
         // note that we can't use error instanceof HttpError properly anymore because of new typescript emit process
-
-        // apply http headers
-        if (method) {
-            Object.keys(method.headers).forEach(name => {
-                response.header(name, method.headers[name]);
-            });
-        }
 
         // send error content
         response.json({
