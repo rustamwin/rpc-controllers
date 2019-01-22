@@ -5,8 +5,9 @@ import {RpcError} from "./RpcError";
  */
 export class ParseError extends RpcError {
     name = "ParseError";
+    message = "Parse error";
 
-    constructor(message: string) {
+    constructor(message?: string) {
         super(-32700);
         Object.setPrototypeOf(this, ParseError.prototype);
 

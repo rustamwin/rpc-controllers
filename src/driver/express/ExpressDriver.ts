@@ -32,7 +32,9 @@ export class ExpressDriver extends BaseDriver {
         if (this.cors) {
             const cors = require("cors");
             if (this.cors === true) {
-                this.express.use(cors());
+                this.express.use(cors({
+                    origin: "POST"
+                }));
             } else {
                 this.express.use(cors(this.cors));
             }
@@ -54,11 +56,12 @@ export class ExpressDriver extends BaseDriver {
         const routeHandler = function routeHandler(request: any, response: any, next: Function) {
             const options = {request, response, next};
             // todo batch requests
+
             const method: MethodMetadata = methods.find((methodMetadata) => methodMetadata.fullName === request.body.method);
             if (request.method.toLowerCase() !== "post") {
                 return next(method, options, new MethodNotAllowedError());
-            } else if (!request.body.params) {
-                return executeCallback(method, options, new InvalidParamsError("safa"));
+            } else if (typeof request.body.params !== "object" || !Array.isArray(request.body.params)) {
+                return executeCallback(method, options, new InvalidParamsError());
 
             } else if (!request.body.method || !method) {
 
@@ -169,7 +172,7 @@ export class ExpressDriver extends BaseDriver {
         response.json({
             "json-rpc": "2.0",
             id: options.request.body.id,
-            error: this.processJsonError(error, options),
+            error: this.processJsonError(error),
         });
     }
 

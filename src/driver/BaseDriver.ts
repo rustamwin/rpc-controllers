@@ -119,19 +119,19 @@ export abstract class BaseDriver {
         return result;
     }
 
-    protected processJsonError(error: any, options: Method) {
+    protected processJsonError(error: any) {
 
         if (typeof error.toJSON === "function")
             return error.toJSON();
 
         let processedError: any = {};
         if (error instanceof RpcError) {
-            processedError.data = {};
-            processedError.name = error.name && error.name !== "RpcError" ? error.name : error.constructor.name;
             processedError.code = error.rpcCode;
 
             if (error.message)
                 processedError.message = error.message;
+
+            processedError.data = {};
             if (error.stack && this.developmentMode)
                 processedError.data.stack = error.stack;
 
@@ -139,16 +139,24 @@ export abstract class BaseDriver {
                 .filter(key => key !== "stack" && key !== "name" && key !== "message" && key !== "rpcCode")
                 .forEach(key => processedError.data[key] = (error as any)[key]);
 
-            // todo check server error
+        } else if (String(error) === error) {
+            error = new InternalError(error);
+            processedError.code = error.rpcCode;
 
-            return Object.keys(processedError).length > 0 ? processedError : undefined;
-        } else {
-            error = new InternalError("Ooops");
-            return {
-                name: error.name,
-                code: error.rpcCode,
-            };
+            if (error.message)
+                processedError.message = error.message;
+
+            processedError.data = {};
+            if (error.stack && this.developmentMode)
+                processedError.data.stack = error.stack;
+
+            Object.keys(error)
+                .filter(key => key !== "stack" && key !== "name" && key !== "message" && key !== "rpcCode")
+                .forEach(key => processedError.data[key] = (error as any)[key]);
+
         }
+
+        return Object.keys(processedError).length > 0 ? processedError : undefined;
     }
 
     protected merge(obj1: any, obj2: any): any {

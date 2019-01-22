@@ -5,8 +5,9 @@ import {RpcError} from "./RpcError";
  */
 export class InvalidParamsError extends RpcError {
     name = "InvalidParamsError";
+    message = "Invalid params";
 
-    constructor(message: string) {
+    constructor(message?: string) {
         super(-32602);
         Object.setPrototypeOf(this, InvalidParamsError.prototype);
 

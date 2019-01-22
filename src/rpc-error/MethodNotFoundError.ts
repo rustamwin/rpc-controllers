@@ -5,6 +5,7 @@ import {RpcError} from "./RpcError";
  */
 export class MethodNotFoundError extends RpcError {
     name = "MethodNotFoundError";
+    message = "Method not found";
 
     constructor(message?: string) {
         super(-32601);

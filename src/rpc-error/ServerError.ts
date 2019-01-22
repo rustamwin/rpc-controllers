@@ -5,8 +5,9 @@ import {RpcError} from "./RpcError";
  */
 export class ServerError extends RpcError {
     name = "ServerError";
+    message = "Server error";
 
-    constructor(message: string) {
+    constructor(message?: string) {
         super(-32000);
         Object.setPrototypeOf(this, ServerError.prototype);
 

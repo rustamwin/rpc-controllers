@@ -5,8 +5,9 @@ import {RpcError} from "./RpcError";
  */
 export class InvalidRequestError extends RpcError {
     name = "InvalidRequestError";
+    message = "Invalid Request";
 
-    constructor(message: string) {
+    constructor(message?: string) {
         super(-32600);
         Object.setPrototypeOf(this, InvalidRequestError.prototype);
 

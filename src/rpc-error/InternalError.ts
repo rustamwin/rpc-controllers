@@ -5,8 +5,9 @@ import {RpcError} from "./RpcError";
  */
 export class InternalError extends RpcError {
     name = "InternalError";
+    message = "Internal error";
 
-    constructor(message: string) {
+    constructor(message?: string) {
         super(-32603);
         Object.setPrototypeOf(this, InternalError.prototype);
 

@@ -7,7 +7,7 @@ export class Test {
 
     @Method("add")
     foo(@Params() params: Array<number>) {
-        console.log(params);
+        // console.log(params);
         return params.reduce((prev, curr) => prev + curr);
     }
 
