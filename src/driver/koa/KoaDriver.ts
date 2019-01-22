@@ -39,13 +39,14 @@ export class KoaDriver extends BaseDriver {
     /**
      * Registers action in the driver.
      */
-    registerMethod(actionMetadata: MethodMetadata, executeCallback: (options: Method) => any): void {
+    registerMethod(methods: MethodMetadata[], executeCallback: (methodMetada: MethodMetadata, options: Method) => any): void {
 
         // prepare route and route handler function
         const route = this.routePrefix + "*";
         const routeHandler = (context: any, next: () => Promise<any>) => {
             const options: Method = {request: context.request, response: context.response, context, next};
-            return executeCallback(options);
+            const method = methods.find(method => method.fullName === options.request.method);
+            return executeCallback(method, options);
         };
 
         // finally register action in koa

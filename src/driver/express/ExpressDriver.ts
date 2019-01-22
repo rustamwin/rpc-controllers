@@ -8,6 +8,7 @@ import {MethodNotAllowedError} from "../../http-error/MethodNotAllowedError";
 import {RpcRequest} from "../../RpcRequest";
 import {InvalidParamsError} from "../../rpc-error/InvalidParamsError";
 import {MethodNotFoundError} from "../../rpc-error/MethodNotFoundError";
+import {RpcError} from "../..";
 
 /**
  * Integration with express framework.
@@ -73,11 +74,19 @@ export class ExpressDriver extends BaseDriver {
             return executeCallback(method, {request, response, next});
         };
 
+        const responseFormatter = function (err: any, request: any, response: any) {
+            if (response instanceof RpcError) {
+                return "response.json()";
+            }
+            console.log(err);
+        };
+
         // finally register action in express
         this.express.use(...[
             route,
             ...defaultMiddlewares,
             routeHandler,
+            responseFormatter
         ]);
     }
 
@@ -122,27 +131,6 @@ export class ExpressDriver extends BaseDriver {
         // transform result if needed
         result = this.transformResult(result, method, options);
 
-        // set http status code
-        if (result === undefined && method.undefinedResultCode) {
-            if (method.undefinedResultCode instanceof Function) {
-                throw new (method.undefinedResultCode as any)(options);
-            }
-            options.response.status(method.undefinedResultCode);
-        }
-        else if (result === null) {
-            if (method.nullResultCode) {
-                if (method.nullResultCode instanceof Function) {
-                    throw new (method.nullResultCode as any)(options);
-                }
-                options.response.status(method.nullResultCode);
-            } else {
-                options.response.status(204);
-            }
-        }
-        else if (method.successHttpCode) {
-            options.response.status(method.successHttpCode);
-        }
-
         // apply http headers
         Object.keys(method.headers).forEach(name => {
             options.response.header(name, method.headers[name]);
@@ -162,14 +150,11 @@ export class ExpressDriver extends BaseDriver {
             options.next();
         } else if (result instanceof Buffer) { // check if it's binary data (Buffer)
             options.response.end(result, "binary");
-        }
-        else if (result instanceof Uint8Array) { // check if it's binary data (typed array)
+        } else if (result instanceof Uint8Array) { // check if it's binary data (typed array)
             options.response.end(Buffer.from(result as any), "binary");
-        }
-        else if (result.pipe instanceof Function) {
+        } else if (result.pipe instanceof Function) {
             result.pipe(options.response);
-        }
-        else { // send regular result
+        } else { // send regular result
             if (method) {
                 options.response.json(result);
             } else {
@@ -187,11 +172,6 @@ export class ExpressDriver extends BaseDriver {
 
         // set http code
         // note that we can't use error instanceof HttpError properly anymore because of new typescript emit process
-        if (error.httpCode) {
-            response.status(error.httpCode);
-        } else {
-            response.status(500);
-        }
 
         // apply http headers
         if (method) {
@@ -203,7 +183,7 @@ export class ExpressDriver extends BaseDriver {
         // send error content
         response.json({
             "json-rpc": "2.0",
-            id: options.request.body.params.id,
+            id: options.request.body.id,
             error: this.processJsonError(error, options),
         });
     }

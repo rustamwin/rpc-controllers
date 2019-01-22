@@ -135,7 +135,9 @@ export abstract class BaseDriver {
 
         let processedError: any = {};
         if (error instanceof RpcError) {
+            processedError.data = {};
             processedError.name = error.name && error.name !== "RpcError" ? error.name : error.constructor.name;
+            processedError.code = error.rpcCode;
 
             if (error.message)
                 processedError.message = error.message;
