@@ -5,6 +5,7 @@ import {MethodMetadata} from "../metadata/MethodMetadata";
 import {ParamMetadata} from "../metadata/ParamMetadata";
 import {Method} from "../Method";
 import {RpcError} from "../rpc-error/RpcError";
+import {InternalError} from "../rpc-error/InternalError";
 
 /**
  * Base driver functionality for all other drivers.
@@ -23,20 +24,10 @@ export abstract class BaseDriver {
     useClassTransformer: boolean;
 
     /**
-     * Indicates if class-validator should be used or not.
-     */
-    enableValidation: boolean;
-
-    /**
      * Global class transformer options passed to class-transformer during classToPlain operation.
      * This operation is being executed when server returns response to user.
      */
     classToPlainTransformOptions: ClassTransformOptions;
-
-    /**
-     * Global class-validator options passed during validate operation.
-     */
-    validationOptions: ValidatorOptions;
 
     /**
      * Global class transformer options passed to class-transformer during plainToClass operation.
@@ -83,7 +74,7 @@ export abstract class BaseDriver {
     /**
      * Registers action in the driver.
      */
-    abstract registerMethod(methods: MethodMetadata[], executeCallback: (method: MethodMetadata, options: Method) => any): void;
+    abstract registerMethod(methods: MethodMetadata[], executeCallback: (method: MethodMetadata, options: Method, error: any) => any): void;
 
     /**
      * Registers all routes in the framework.
@@ -151,9 +142,13 @@ export abstract class BaseDriver {
             // todo check server error
 
             return Object.keys(processedError).length > 0 ? processedError : undefined;
+        } else {
+            error = new InternalError("Ooops");
+            return {
+                name: error.name,
+                code: error.rpcCode,
+            };
         }
-
-        return error;
     }
 
     protected merge(obj1: any, obj2: any): any {

@@ -2,13 +2,9 @@ import {MethodMetadata} from "../../metadata/MethodMetadata";
 import {Method} from "../../Method";
 import {ParamMetadata} from "../../metadata/ParamMetadata";
 import {BaseDriver} from "../BaseDriver";
-import {isPromiseLike} from "../../helpers/isPromiseLike";
-import {getFromContainer} from "../../container";
 import {MethodNotAllowedError} from "../../http-error/MethodNotAllowedError";
-import {RpcRequest} from "../../RpcRequest";
 import {InvalidParamsError} from "../../rpc-error/InvalidParamsError";
 import {MethodNotFoundError} from "../../rpc-error/MethodNotFoundError";
-import {RpcError} from "../..";
 
 /**
  * Integration with express framework.
@@ -46,7 +42,7 @@ export class ExpressDriver extends BaseDriver {
     /**
      * Registers action in the driver.
      */
-    registerMethod(methods: MethodMetadata[], executeCallback: (method: MethodMetadata, options: Method) => any): void {
+    registerMethod(methods: MethodMetadata[], executeCallback: (method: MethodMetadata, options: Method, error?: any) => any): void {
 
         // middlewares required for this method
         const defaultMiddlewares: any[] = [];
@@ -56,37 +52,26 @@ export class ExpressDriver extends BaseDriver {
         // prepare route and route handler function
         const route = this.routePrefix + "*";
         const routeHandler = function routeHandler(request: any, response: any, next: Function) {
-            // Express calls the "get" route automatically when we call the "head" route:
-            // Reference: https://expressjs.com/en/4x/api.html#router.METHOD
-            // This causes a double action execution on our side, which results in an unhandled rejection,
-            // saying: "Can't set headers after they are sent".
-            // The following line skips action processing when the request method does not match the action method.
+            const options = {request, response, next};
+            // todo batch requests
             const method: MethodMetadata = methods.find((methodMetadata) => methodMetadata.fullName === request.body.method);
             if (request.method.toLowerCase() !== "post") {
-                return next(new MethodNotAllowedError());
+                return next(method, options, new MethodNotAllowedError());
             } else if (!request.body.params) {
-                return next(new InvalidParamsError("safa"));
+                return executeCallback(method, options, new InvalidParamsError("safa"));
 
             } else if (!request.body.method || !method) {
 
-                return next(new MethodNotFoundError());
+                return executeCallback(method, options, new MethodNotFoundError());
             }
-            return executeCallback(method, {request, response, next});
+            return executeCallback(method, options);
         };
 
-        const responseFormatter = function (err: any, request: any, response: any) {
-            if (response instanceof RpcError) {
-                return "response.json()";
-            }
-            console.log(err);
-        };
-
-        // finally register action in express
+        // finally register method in express
         this.express.use(...[
             route,
             ...defaultMiddlewares,
             routeHandler,
-            responseFormatter
         ]);
     }
 

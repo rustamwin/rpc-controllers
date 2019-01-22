@@ -7,9 +7,9 @@ import {MethodNotFoundError} from "../../../src/rpc-error/MethodNotFoundError";
 export class Test {
 
     @Method("foo")
-    foo(@Params() params: any) {
+    async foo(@Params() params: Array<number>) {
         console.log(params);
-        throw new MethodNotFoundError("fasfsfsa");
+        return Promise.reject("unknown");
     }
 
     @Method("hello")

@@ -5,6 +5,7 @@ import {ParamMetadata} from "../../metadata/ParamMetadata";
 import {isPromiseLike} from "../../helpers/isPromiseLike";
 import {getFromContainer} from "../../container";
 import {RpcError} from "../../rpc-error/RpcError";
+import {error} from "util";
 
 const cookie = require("cookie");
 
@@ -39,14 +40,14 @@ export class KoaDriver extends BaseDriver {
     /**
      * Registers action in the driver.
      */
-    registerMethod(methods: MethodMetadata[], executeCallback: (methodMetada: MethodMetadata, options: Method) => any): void {
+    registerMethod(methods: MethodMetadata[], executeCallback: (methodMetadata: MethodMetadata, options: Method, error: any) => any): void {
 
         // prepare route and route handler function
         const route = this.routePrefix + "*";
         const routeHandler = (context: any, next: () => Promise<any>) => {
             const options: Method = {request: context.request, response: context.response, context, next};
             const method = methods.find(method => method.fullName === options.request.method);
-            return executeCallback(method, options);
+            return executeCallback(method, options, error);
         };
 
         // finally register action in koa

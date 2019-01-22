@@ -156,14 +156,14 @@ export function createExecutor<T extends BaseDriver>(driver: T, options: Applica
         driver.useClassTransformer = true;
     }
 
-    if (options.validation !== undefined) {
+    /*if (options.validation !== undefined) {
         driver.enableValidation = !!options.validation;
         if (options.validation instanceof Object)
             driver.validationOptions = options.validation as ValidationOptions;
 
     } else {
         driver.enableValidation = true;
-    }
+    }*/
 
     driver.classToPlainTransformOptions = options.classToPlainTransformOptions;
     driver.plainToClassTransformOptions = options.plainToClassTransformOptions;

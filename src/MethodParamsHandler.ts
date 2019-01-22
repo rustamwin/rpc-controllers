@@ -103,7 +103,6 @@ export class MethodParamsHandler<T extends BaseDriver> {
                 if (value && (param.parse || param.isTargetObject)) {
                     value = this.parseValue(value, param);
                     value = this.transformValue(value, param);
-                    value = this.validateValue(value, param); // note this one can return promise
                 }
         }
         return value;
@@ -140,30 +139,5 @@ export class MethodParamsHandler<T extends BaseDriver> {
         return value;
     }
 
-    /**
-     * Perform class-validation if enabled.
-     */
-    protected validateValue(value: any, paramMetadata: ParamMetadata): Promise<any> | any {
-        const isValidationEnabled = (paramMetadata.validate instanceof Object || paramMetadata.validate === true)
-            || (this.driver.enableValidation === true && paramMetadata.validate !== false);
-        const shouldValidate = paramMetadata.targetType
-            && (paramMetadata.targetType !== Object)
-            && (value instanceof paramMetadata.targetType);
-
-        if (isValidationEnabled && shouldValidate) {
-            const options = paramMetadata.validate instanceof Object ? paramMetadata.validate : this.driver.validationOptions;
-            return validate(value, options)
-                .then(() => value)
-                .catch((validationErrors: ValidationError[]) => {
-                    // todo better error
-                    const error: any = new RpcError(400, `Invalid ${paramMetadata.type}, check 'errors' property for more info.`);
-                    error.errors = validationErrors;
-                    error.paramName = paramMetadata.name;
-                    throw error;
-                });
-        }
-
-        return value;
-    }
 
 }

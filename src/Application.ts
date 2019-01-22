@@ -23,11 +23,6 @@ export class Application<T extends BaseDriver> {
      */
     private metadataBuilder: MetadataBuilder;
 
-    /**
-     * Application methods
-     */
-    private methods: MethodMetadata[] = [];
-
     // -------------------------------------------------------------------------
     // Constructor
     // -------------------------------------------------------------------------
@@ -46,10 +41,6 @@ export class Application<T extends BaseDriver> {
      */
     initialize(classes?: Function[]): this {
         this.driver.initialize();
-        const controllers = this.metadataBuilder.buildControllerMetadata(classes);
-        controllers.forEach(controller => {
-            this.methods.push(...controller.methods);
-        });
         return this;
     }
 
@@ -62,8 +53,9 @@ export class Application<T extends BaseDriver> {
         controllers.forEach(controller => {
             methods.push(...controller.methods);
         });
-        this.driver.registerMethod(methods, (methodMetadata: MethodMetadata, options: Method) => {
-
+        this.driver.registerMethod(methods, (methodMetadata: MethodMetadata, options: Method, error?: any) => {
+            if (error)
+                return this.driver.handleError(error, methodMetadata, options);
             return this.executeMethod(methodMetadata, options);
         });
         this.driver.registerRoutes();
@@ -84,8 +76,7 @@ export class Application<T extends BaseDriver> {
         return Promise.all(paramsPromises).then(params => {
 
             // execute method and handle result
-            const allParams = methodMetadata.appendParams ? methodMetadata.appendParams(method).concat(params) : params;
-            const result = methodMetadata.methodOverride ? methodMetadata.methodOverride(methodMetadata, method, allParams) : methodMetadata.callMethod(allParams);
+            const result  = methodMetadata.callMethod(params);
             return this.handleCallMethodResult(result, methodMetadata, method);
 
         }).catch(error => {
