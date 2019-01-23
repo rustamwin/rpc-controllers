@@ -2,12 +2,7 @@ import {Method} from "../../Method";
 import {MethodMetadata} from "../../metadata/MethodMetadata";
 import {BaseDriver} from "../BaseDriver";
 import {ParamMetadata} from "../../metadata/ParamMetadata";
-import {isPromiseLike} from "../../helpers/isPromiseLike";
-import {getFromContainer} from "../../container";
-import {RpcError} from "../../rpc-error/RpcError";
 import {error} from "util";
-
-const cookie = require("cookie");
 
 /**
  * Integration with koa framework.
@@ -123,19 +118,12 @@ export class KoaDriver extends BaseDriver {
     /**
      * Handles result of failed executed controller action.
      */
-    handleError(error: any, action: MethodMetadata | undefined, options: Method) {
+    handleError(error: any, options: Method) {
         return new Promise((resolve, reject) => {
             if (this.isDefaultErrorHandlingEnabled) {
 
-                // apply http headers
-                if (action) {
-                    Object.keys(action.headers).forEach(name => {
-                        options.response.set(name, action.headers[name]);
-                    });
-                }
-
                 // send error content
-                options.response.body = this.processJsonError(error, options);
+                options.response.body = this.processJsonError(error);
 
                 // todo set http status
 

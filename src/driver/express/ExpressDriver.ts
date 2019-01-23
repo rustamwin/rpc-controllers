@@ -3,10 +3,8 @@ import {Method} from "../../Method";
 import {ParamMetadata} from "../../metadata/ParamMetadata";
 import {BaseDriver} from "../BaseDriver";
 import {MethodNotAllowedError} from "../../http-error/MethodNotAllowedError";
-import {InvalidParamsError} from "../../rpc-error/InvalidParamsError";
 import {MethodNotFoundError} from "../../rpc-error/MethodNotFoundError";
 import {ParseError} from "../../rpc-error/ParseError";
-import {RpcRequest} from "../../RpcRequest";
 import {InvalidRequestError} from "../../rpc-error/InvalidRequestError";
 
 /**
@@ -57,7 +55,7 @@ export class ExpressDriver extends BaseDriver {
         defaultMiddlewares.push(function (err: any, request: any, response: any, next: Function) {
             if (err) {
                 console.log(err);
-                return executeCallback(new ParseError(), {request, response});
+                return executeCallback(new ParseError(), {request, response, next});
             }
         });
 
@@ -70,19 +68,19 @@ export class ExpressDriver extends BaseDriver {
             const method: MethodMetadata = methods.find((methodMetadata) => methodMetadata.fullName === request.body.method);
 
             if (request.method.toLowerCase() !== "post") {
+
                 return next(method, options, new MethodNotAllowedError());
             } else if (!request.body || typeof request.body !== "object") {
-                return executeCallback(new ParseError(), options, method);
-            } /*else if (!(request.body instanceof RpcRequest)) {
-                return executeCallback(new InvalidRequestError(), options, method);
 
-            } */else if (!request.body.method || !method) {
+                return executeCallback(new ParseError(), options, method);
+            } else if (!request.body.params) {
+
+                return executeCallback(new InvalidRequestError(), options, method);
+            } else if (!request.body.method || !method) {
 
                 return executeCallback(new MethodNotFoundError(), options, method);
-            } else if (typeof request.body.params !== "object" || !Array.isArray(request.body.params)) {
-                return executeCallback(new InvalidParamsError(), options, method);
-
             }
+
             return executeCallback(null, options, method);
         };
 
