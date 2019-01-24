@@ -101,25 +101,9 @@ export class MethodParamsHandler<T extends BaseDriver> {
 
             default:
                 if (value && (param.parse || param.isTargetObject)) {
-                    value = this.parseValue(value, param);
                     value = this.transformValue(value, param);
                 }
         }
-        return value;
-    }
-
-    /**
-     * Parses string value into a JSON object.
-     */
-    protected parseValue(value: any, paramMetadata: ParamMetadata): any {
-        if (typeof value === "string") {
-            try {
-                return JSON.parse(value);
-            } catch (error) {
-                throw new ParseError("");
-            }
-        }
-
         return value;
     }
 

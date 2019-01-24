@@ -1,4 +1,3 @@
-import {ValidatorOptions} from "class-validator";
 import {classToPlain, ClassTransformOptions} from "class-transformer";
 
 import {MethodMetadata} from "../metadata/MethodMetadata";
@@ -57,16 +56,6 @@ export abstract class BaseDriver {
     cors?: boolean | Object;
 
     /**
-     * Map of error overrides.
-     */
-    errorOverridingMap: {[key: string]: any};
-
-    /**
-     * Methods
-     */
-    private methods: MethodMetadata[];
-
-    /**
      * Initializes the things driver needs before routes and middleware registration.
      */
     abstract initialize(): void;
@@ -121,9 +110,6 @@ export abstract class BaseDriver {
 
     protected processJsonError(error: any) {
 
-        if (typeof error.toJSON === "function")
-            return error.toJSON();
-
         let processedError: any = {};
         if (error instanceof RpcError) {
             processedError.code = error.rpcCode;
@@ -139,7 +125,7 @@ export abstract class BaseDriver {
                 .filter(key => key !== "stack" && key !== "name" && key !== "message" && key !== "rpcCode")
                 .forEach(key => processedError.data[key] = (error as any)[key]);
 
-        } else if (String(error) === error) {
+        } else if (typeof error === "string") {
             error = new InternalError(error);
             processedError.code = error.rpcCode;
 

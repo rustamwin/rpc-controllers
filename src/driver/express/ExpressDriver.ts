@@ -54,7 +54,6 @@ export class ExpressDriver extends BaseDriver {
 
         defaultMiddlewares.push(function (err: any, request: any, response: any, next: Function) {
             if (err) {
-                console.log(err);
                 return executeCallback(new ParseError(), {request, response, next});
             }
         });

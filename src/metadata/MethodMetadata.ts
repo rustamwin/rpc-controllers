@@ -108,20 +108,10 @@ export class MethodMetadata {
      */
     build(responseHandlers: ResponseHandlerMetadata[]) {
         const classTransformerResponseHandler = responseHandlers.find(handler => handler.type === "response-class-transform-options");
-        const undefinedResultHandler = responseHandlers.find(handler => handler.type === "on-undefined");
-        const nullResultHandler = responseHandlers.find(handler => handler.type === "on-null");
         const successCodeHandler = responseHandlers.find(handler => handler.type === "success-code");
 
         if (classTransformerResponseHandler)
             this.responseClassTransformOptions = classTransformerResponseHandler.value;
-
-        this.undefinedResultCode = undefinedResultHandler
-            ? undefinedResultHandler.value
-            : this.options.defaults && this.options.defaults.undefinedResultCode;
-
-        this.nullResultCode = nullResultHandler
-            ? nullResultHandler.value
-            : this.options.defaults && this.options.defaults.nullResultCode;
 
         if (successCodeHandler)
             this.successHttpCode = successCodeHandler.value;
@@ -145,10 +135,10 @@ export class MethodMetadata {
             return this.name;
         }
 
-        let path: string = "";
-        if (this.controllerMetadata.name) path += this.controllerMetadata.name + ".";
-        if (this.name && typeof this.name === "string") path += this.name;
-        return path;
+        let paths: Array<string> = [];
+        if (this.controllerMetadata.name) paths.push(this.controllerMetadata.name);
+        if (this.name && typeof this.name === "string") paths.push(this.name);
+        return paths.join(this.options.methodSeparator!);
     }
 
     /**
