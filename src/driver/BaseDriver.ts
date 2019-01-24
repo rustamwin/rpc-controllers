@@ -5,6 +5,7 @@ import {ParamMetadata} from "../metadata/ParamMetadata";
 import {Method} from "../Method";
 import {RpcError} from "../rpc-error/RpcError";
 import {InternalError} from "../rpc-error/InternalError";
+import {ServerError} from "../rpc-error/ServerError";
 
 /**
  * Base driver functionality for all other drivers.
@@ -103,6 +104,10 @@ export abstract class BaseDriver {
         if (shouldTransform) {
             const options = method.responseClassTransformOptions || this.classToPlainTransformOptions;
             result = classToPlain(result, options);
+        } else if (result instanceof Buffer || result instanceof Uint8Array) { // check if it's binary data (typed array)
+            result = new Buffer(result as any).toString("binary");
+        } else if (result.pipe instanceof Function) {
+            result.pipe(options.response);
         }
 
         return result;
@@ -128,6 +133,20 @@ export abstract class BaseDriver {
         } else if (typeof error === "string") {
             error = new InternalError(error);
             processedError.code = error.rpcCode;
+
+            if (error.message)
+                processedError.message = error.message;
+
+            processedError.data = {};
+            if (error.stack && this.developmentMode)
+                processedError.data.stack = error.stack;
+
+            Object.keys(error)
+                .filter(key => key !== "stack" && key !== "name" && key !== "message" && key !== "rpcCode")
+                .forEach(key => processedError.data[key] = (error as any)[key]);
+
+        } else {
+            processedError.code = new ServerError().rpcCode;
 
             if (error.message)
                 processedError.message = error.message;

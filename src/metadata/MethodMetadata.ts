@@ -55,10 +55,6 @@ export class MethodMetadata {
      */
     undefinedResultCode: number | Function;
 
-    /**
-     * Http code to be used on null method returned content.
-     */
-    nullResultCode: number | Function;
 
     /**
      * Http code to be set on successful response.
@@ -69,11 +65,6 @@ export class MethodMetadata {
      * Response headers to be set.
      */
     headers: { [name: string]: any };
-
-    /**
-     * Extra options used by @Body decorator.
-     */
-    bodyExtraOptions: any;
 
     /**
      * Params to be appended to the method call.
@@ -138,7 +129,7 @@ export class MethodMetadata {
         let paths: Array<string> = [];
         if (this.controllerMetadata.name) paths.push(this.controllerMetadata.name);
         if (this.name && typeof this.name === "string") paths.push(this.name);
-        return paths.join(this.options.methodSeparator!);
+        return paths.join(this.options.methodSeparator! || ".");
     }
 
     /**

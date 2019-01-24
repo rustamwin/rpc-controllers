@@ -122,7 +122,6 @@ export class ExpressDriver extends BaseDriver {
      * Handles result of successfully executed controller action.
      */
     handleSuccess(result: any, method: MethodMetadata, options: Method): void {
-
         // if the method returned the response object itself, short-circuits
         if (result && result === options.response) {
             options.next();
@@ -149,18 +148,12 @@ export class ExpressDriver extends BaseDriver {
         } else if (result === null) { // send null response
             // todo send null response
             options.next();
-        } else if (result instanceof Buffer) { // check if it's binary data (Buffer)
-            options.response.end(result, "binary");
-        } else if (result instanceof Uint8Array) { // check if it's binary data (typed array)
-            options.response.end(Buffer.from(result as any), "binary");
-        } else if (result.pipe instanceof Function) {
-            result.pipe(options.response);
-        } else { // send regular result
-            if (method) {
-                options.response.json(result);
-            } else {
-                options.response.send(result);
-            }
+        }  else { // send regular result
+            options.response.json({
+                "json-rpc": "2.0",
+                id: options.request.body.id,
+                result: result
+            });
             options.next();
         }
     }
@@ -177,7 +170,7 @@ export class ExpressDriver extends BaseDriver {
         // send error content
         response.json({
             "json-rpc": "2.0",
-            id: options.request.body.id,
+            id: null,
             error: this.processJsonError(error),
         });
     }

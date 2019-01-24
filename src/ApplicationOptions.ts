@@ -52,4 +52,29 @@ export interface ApplicationOptions {
     development?: boolean;
 
     methodSeparator?: string;
+
+    /**
+     * Default settings
+     */
+    defaults?: {
+        /**
+         * If set, all null responses will return specified status code by default
+         */
+        nullResultCode?: number;
+
+        /**
+         * If set, all undefined responses will return specified status code by default
+         */
+        undefinedResultCode?: number;
+
+        /**
+         * Default param options
+         */
+        paramOptions?: {
+            /**
+             * If true, all non-set parameters will be required by default
+             */
+            required?: boolean;
+        };
+    }
 }
