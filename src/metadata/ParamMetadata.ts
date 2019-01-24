@@ -3,7 +3,7 @@ import {MethodMetadata} from "./MethodMetadata";
 import {ParamMetadataArgs} from "./args/ParamMetadataArgs";
 import {ParamType} from "./types/ParamType";
 import {ClassTransformOptions} from "class-transformer";
-import {Method} from "../Method";
+import {Action} from "../Action";
 
 /**
  * Method Parameter metadata.
@@ -77,7 +77,7 @@ export class ParamMetadata {
     /**
      * Transforms the value.
      */
-    transform: (method: Method, value?: any) => Promise<any>|any;
+    transform: (action: Action, value?: any) => Promise<any>|any;
 
     /**
      * Additional parameter options.
@@ -114,7 +114,7 @@ export class ParamMetadata {
         this.transform = args.transform;
         this.classTransform = args.classTransform;
         this.validate = args.validate;
-        
+
         if (args.explicitType) {
             this.targetType = args.explicitType;
         } else {

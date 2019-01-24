@@ -2,7 +2,7 @@ import {classToPlain, ClassTransformOptions} from "class-transformer";
 
 import {MethodMetadata} from "../metadata/MethodMetadata";
 import {ParamMetadata} from "../metadata/ParamMetadata";
-import {Method} from "../Method";
+import {Action} from "../Action";
 import {RpcError} from "../rpc-error/RpcError";
 import {InternalError} from "../rpc-error/InternalError";
 import {ServerError} from "../rpc-error/ServerError";
@@ -64,7 +64,7 @@ export abstract class BaseDriver {
     /**
      * Registers method in the driver.
      */
-    abstract registerMethod(methods: MethodMetadata[], executeCallback: (error: any, options: Method, method?: MethodMetadata) => any): void;
+    abstract registerMethod(methods: MethodMetadata[], executeCallback: (error: any, action: Action, method?: MethodMetadata) => any): void;
 
     /**
      * Registers all routes in the framework.
@@ -74,23 +74,23 @@ export abstract class BaseDriver {
     /**
      * Gets param from the request.
      */
-    abstract getParamFromRequest(methodOptions: Method, param: ParamMetadata): any;
+    abstract getParamFromRequest(methodOptions: Action, param: ParamMetadata): any;
 
     /**
      * Defines an algorithm of how to handle error during executing controller method.
      */
-    abstract handleError(error: any, options: Method): any;
+    abstract handleError(error: any, action: Action): any;
 
     /**
      * Defines an algorithm of how to handle success result of executing controller method.
      */
-    abstract handleSuccess(result: any, method: MethodMetadata, options: Method): void;
+    abstract handleSuccess(result: any, method: MethodMetadata, action: Action): void;
 
     // -------------------------------------------------------------------------
     // Protected Methods
     // -------------------------------------------------------------------------
 
-    protected transformResult(result: any, method: MethodMetadata, options: Method): any {
+    protected transformResult(result: any, method: MethodMetadata, action: Action): any {
         // check if we need to transform result
         const shouldTransform = (this.useClassTransformer && result != null) // transform only if enabled and value exist
             && result instanceof Object // don't transform primitive types (string/number/boolean)
@@ -102,12 +102,12 @@ export abstract class BaseDriver {
 
         // transform result if needed
         if (shouldTransform) {
-            const options = method.responseClassTransformOptions || this.classToPlainTransformOptions;
-            result = classToPlain(result, options);
+            const action = method.responseClassTransformOptions || this.classToPlainTransformOptions;
+            result = classToPlain(result, action);
         } else if (result instanceof Buffer || result instanceof Uint8Array) { // check if it's binary data (typed array)
             result = new Buffer(result as any).toString("binary");
         } else if (result.pipe instanceof Function) {
-            result.pipe(options.response);
+            result.pipe(action.response);
         }
 
         return result;

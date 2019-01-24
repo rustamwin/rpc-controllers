@@ -70,7 +70,7 @@ export * from "./metadata/ParamMetadata";
 export * from "./metadata/ResponseHandleMetadata";
 
 export * from "./ApplicationOptions";
-export * from "./Method";
+export * from "./Action";
 
 export * from "./driver/BaseDriver";
 export * from "./driver/express/ExpressDriver";
@@ -175,6 +175,6 @@ export function createExecutor<T extends BaseDriver>(driver: T, options: Applica
 
     // next create a controller executor
     new Application(driver, options)
-        .initialize(controllerClasses)
+        .initialize()
         .registerControllers(controllerClasses);
 }

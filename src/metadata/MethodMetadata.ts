@@ -1,4 +1,4 @@
-import { Method } from "../Method";
+import { Action } from "../Action";
 import { MethodMetadataArgs } from "./args/MethodMetadataArgs";
 import { ClassTransformOptions } from "class-transformer";
 import { ControllerMetadata } from "./ControllerMetadata";
@@ -51,17 +51,6 @@ export class MethodMetadata {
     responseClassTransformOptions: ClassTransformOptions;
 
     /**
-     * Http code to be used on undefined method returned content.
-     */
-    undefinedResultCode: number | Function;
-
-
-    /**
-     * Http code to be set on successful response.
-     */
-    successHttpCode: number;
-
-    /**
      * Response headers to be set.
      */
     headers: { [name: string]: any };
@@ -69,12 +58,12 @@ export class MethodMetadata {
     /**
      * Params to be appended to the method call.
      */
-    appendParams?: (method: Method) => any[];
+    appendParams?: (action: Action) => any[];
 
     /**
      * Special function that will be called instead of orignal method of the target.
      */
-    methodOverride?: (methodMetadata: MethodMetadata, method: Method, params: any[]) => Promise<any> | any;
+    methodOverride?: (methodMetadata: MethodMetadata, action: Action, params: any[]) => Promise<any> | any;
 
     // -------------------------------------------------------------------------
     // Constructor
@@ -99,13 +88,10 @@ export class MethodMetadata {
      */
     build(responseHandlers: ResponseHandlerMetadata[]) {
         const classTransformerResponseHandler = responseHandlers.find(handler => handler.type === "response-class-transform-options");
-        const successCodeHandler = responseHandlers.find(handler => handler.type === "success-code");
 
         if (classTransformerResponseHandler)
             this.responseClassTransformOptions = classTransformerResponseHandler.value;
 
-        if (successCodeHandler)
-            this.successHttpCode = successCodeHandler.value;
 
         this.fullName = this.buildFullName();
         this.headers = this.buildHeaders(responseHandlers);

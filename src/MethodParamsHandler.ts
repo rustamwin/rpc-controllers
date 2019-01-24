@@ -1,12 +1,9 @@
-import { RpcError } from "./rpc-error/RpcError";
 import { plainToClass } from "class-transformer";
-import { validateOrReject as validate, ValidationError } from "class-validator";
-import { Method } from "./Method";
+import { Action } from "./Action";
 import { BaseDriver } from "./driver/BaseDriver";
 import { ParamMetadata } from "./metadata/ParamMetadata";
 import { isPromiseLike } from "./helpers/isPromiseLike";
 import {InvalidParamsError} from "./rpc-error/InvalidParamsError";
-import {ParseError} from "./rpc-error/ParseError";
 
 /**
  * Handles method params.
@@ -19,23 +16,23 @@ export class MethodParamsHandler<T extends BaseDriver> {
     /**
      * Handles method parameter.
      */
-    handle(method: Method, param: ParamMetadata): Promise<any> | any {
+    handle(action: Action, param: ParamMetadata): Promise<any> | any {
 
        /* if (param.type === "request")
-            return method.request;
+            return action.request;
 
         if (param.type === "response")
-            return method.response;
+            return action.response;
 
         if (param.type === "context")
-            return method.context;
+            return action.context;
 */
         // get parameter value from request and normalize it
-        const value = this.normalizeParamValue(this.driver.getParamFromRequest(method, param), param);
+        const value = this.normalizeParamValue(this.driver.getParamFromRequest(action, param), param);
         if (isPromiseLike(value))
-            return value.then(value => this.handleValue(value, method, param));
+            return value.then(value => this.handleValue(value, action, param));
 
-        return this.handleValue(value, method, param);
+        return this.handleValue(value, action, param);
     }
 
     // -------------------------------------------------------------------------
@@ -45,11 +42,11 @@ export class MethodParamsHandler<T extends BaseDriver> {
     /**
      * Handles non-promise value.
      */
-    protected handleValue(value: any, method: Method, param: ParamMetadata): Promise<any> | any {
+    protected handleValue(value: any, action: Action, param: ParamMetadata): Promise<any> | any {
 
         // if transform function is given for this param then apply it
         if (param.transform)
-            value = param.transform(method, value);
+            value = param.transform(action, value);
 
         // check cases when parameter is required but its empty and throw errors in this case
         if (param.required) {
@@ -60,7 +57,7 @@ export class MethodParamsHandler<T extends BaseDriver> {
                 return Promise.reject(new InvalidParamsError("Params empty"));
 
             } else if (param.name && isValueEmpty) { // regular check for all other parameters // todo: figure out something with param.name usage and multiple things params (query params, upload files etc.)
-                return Promise.reject(new InvalidParamsError("method, param"));
+                return Promise.reject(new InvalidParamsError("action, param"));
             }
         }
 
@@ -122,6 +119,5 @@ export class MethodParamsHandler<T extends BaseDriver> {
 
         return value;
     }
-
 
 }

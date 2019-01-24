@@ -1,7 +1,7 @@
 /**
  * Controller method properties.
  */
-export interface Method {
+export interface Action {
 
     /**
      * Method Request object.

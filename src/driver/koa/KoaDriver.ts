@@ -1,4 +1,4 @@
-import {Method} from "../../Method";
+import {Action} from "../../Action";
 import {MethodMetadata} from "../../metadata/MethodMetadata";
 import {BaseDriver} from "../BaseDriver";
 import {ParamMetadata} from "../../metadata/ParamMetadata";
@@ -35,14 +35,14 @@ export class KoaDriver extends BaseDriver {
     /**
      * Registers action in the driver.
      */
-    registerMethod(methods: MethodMetadata[], executeCallback: (methodMetadata: MethodMetadata, options: Method, error: any) => any): void {
+    registerMethod(methods: MethodMetadata[], executeCallback: (methodMetadata: MethodMetadata, action: Action, error: any) => any): void {
 
         // prepare route and route handler function
         const route = this.routePrefix + "*";
         const routeHandler = (context: any, next: () => Promise<any>) => {
-            const options: Method = {request: context.request, response: context.response, context, next};
-            const method = methods.find(method => method.fullName === options.request.method);
-            return executeCallback(method, options, error);
+            const action: Action = {request: context.request, response: context.response, context, next};
+            const method = methods.find(method => method.fullName === action.request.method);
+            return executeCallback(method, action, error);
         };
 
         // finally register action in koa
@@ -63,7 +63,7 @@ export class KoaDriver extends BaseDriver {
     /**
      * Gets param from the request.
      */
-    getParamFromRequest(actionOptions: Method, param: ParamMetadata): any {
+    getParamFromRequest(actionOptions: Action, param: ParamMetadata): any {
         const context = actionOptions.context;
         const request: any = actionOptions.request;
         switch (param.type) {
@@ -85,45 +85,40 @@ export class KoaDriver extends BaseDriver {
     /**
      * Handles result of successfully executed controller action.
      */
-    handleSuccess(result: any, action: MethodMetadata, options: Method): void {
+    handleSuccess(result: any, method: MethodMetadata, action: Action): void {
 
         // if the action returned the context or the response object itself, short-circuits
-        if (result && (result === options.response || result === options.context)) {
-            return options.next();
+        if (result && (result === action.response || result === action.context)) {
+            return action.next();
         }
 
         // transform result if needed
-        result = this.transformResult(result, action, options);
+        result = this.transformResult(result, method, action);
 
         if (result === undefined) { // throw NotFoundError on undefined response
-            if (action.undefinedResultCode instanceof Function) {
-                throw new (action.undefinedResultCode as any)(options);
 
-            } else if (!action.undefinedResultCode) {
-                // throw new NotFoundError();
-            }
         }
         // todo send null response
 
         // todo set http status code
 
         // apply http headers
-        Object.keys(action.headers).forEach(name => {
-            options.response.set(name, action.headers[name]);
+        Object.keys(method.headers).forEach(name => {
+            action.response.set(name, method.headers[name]);
         });
 
-        return options.next();
+        return action.next();
     }
 
     /**
      * Handles result of failed executed controller action.
      */
-    handleError(error: any, options: Method) {
+    handleError(error: any, action: Action) {
         return new Promise((resolve, reject) => {
             if (this.isDefaultErrorHandlingEnabled) {
 
                 // send error content
-                options.response.body = this.processJsonError(error);
+                action.response.body = this.processJsonError(error);
 
                 // todo set http status
 

@@ -27,11 +27,6 @@ export class ControllerMetadata {
      */
     name: string;
 
-    /**
-     * Controller type. Can be default or json-typed. Json-typed controllers operate with json requests and responses.
-     */
-    type: "default"|"json";
-
     // -------------------------------------------------------------------------
     // Constructor
     // -------------------------------------------------------------------------

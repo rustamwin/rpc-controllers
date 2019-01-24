@@ -1,4 +1,4 @@
-import {Method} from "../../Method";
+import {Action} from "../../Action";
 import {MethodMetadata} from "../MethodMetadata";
 
 /**
@@ -24,11 +24,11 @@ export interface MethodMetadataArgs {
     /**
      * Params to be appended to the method call.
      */
-    appendParams?: (method: Method) => any[];
+    appendParams?: (method: Action) => any[];
 
     /**
      * Special function that will be called instead of orignal method of the target.
      */
-    methodOverride?: (methodMetadata: MethodMetadata, method: Method, params: any[]) => Promise<any>|any;
+    methodOverride?: (methodMetadata: MethodMetadata, method: Action, params: any[]) => Promise<any>|any;
 
 }
