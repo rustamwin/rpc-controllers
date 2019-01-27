@@ -98,5 +98,4 @@ You can use rpc-controllers with [express.js][1] or [koa.js][2].
     ```
     > if you are koa user you just need to use `createKoaServer` instead of `createExpressServer`
     
-3. Open in browser `http://localhost:3000/users`. You will see `This action returns all users` in your browser.
-If you open `http://localhost:3000/users/1` you will see `This action returns user #1`.
+3. Send a JSON-RPC 2.0 request to `http://localhost:3000` using the `math.add` method and the `[1, 1]` params. You will get the result `2`.
