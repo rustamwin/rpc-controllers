@@ -40,7 +40,7 @@ You can use rpc-controllers with [express.js][1] or [koa.js][2].
 
     `npm install @types/express @types/body-parser --save`
 
-    **b. If you want to use rpc-controllers with *koa 2*, then install it and all required dependencies:**
+    **b. If you want to use rpc-controllers with *koa.js*, then install it and all required dependencies:**
 
     `npm install koa koa-router koa-bodyparser --save`
 
