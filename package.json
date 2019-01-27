@@ -1,6 +1,6 @@
 {
   "name": "rpc-controllers",
-  "version": "0.0.0",
+  "version": "0.0.1",
   "description": "JSON-RPC framework for node.js",
   "main": "index.js",
   "private": true,
