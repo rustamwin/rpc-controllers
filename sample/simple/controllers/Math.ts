@@ -3,11 +3,10 @@ import {Method} from "../../../src/decorator/Method";
 import {Params} from "../../../src/decorator/Params";
 
 @Controller("math")
-export class Test {
+export class Math {
 
     @Method("add")
     foo(@Params() params: Array<number>) {
-        // console.log(params);
         return new Buffer("safasfas");
     }
 
