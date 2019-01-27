@@ -5,7 +5,7 @@
 [![npm version](https://badge.fury.io/js/rpc-controllers.svg)](https://badge.fury.io/js/rpc-controllers)
 [![Dependency Status](https://david-dm.org/rustamwin/rpc-controllers.svg)](https://david-dm.org/rustamwin/rpc-controllers)
 
-Allows to create controller classes with methods as JSON-RPC methods that handle JSON-RPC requests.
+Allows to create controller classes with methods as JSON-RPC methods that handle [JSON-RPC 2.0][3] requests.
 You can use rpc-controllers with [express.js][1] or [koa.js][2].
 
 # Table of contents
@@ -99,3 +99,7 @@ You can use rpc-controllers with [express.js][1] or [koa.js][2].
     > if you are koa user you just need to use `createKoaServer` instead of `createExpressServer`
     
 3. Send a JSON-RPC 2.0 request to `http://localhost:3000` using the `math.add` method and the `[1, 1]` params. You will get the result `2`.
+
+[1]: http://expressjs.com/
+[2]: http://koajs.com/
+[3]: https://www.jsonrpc.org/specification
