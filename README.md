@@ -98,7 +98,7 @@ You can use rpc-controllers with [express.js][1] or [koa.js][2].
     ```
     > if you are koa user you just need to use `createKoaServer` instead of `createExpressServer`
     
-3. Send a JSON-RPC 2.0 request to `http://localhost:3000` using the `math.add` method and the `[1, 1]` params. You will get the result `2`.
+3. Send a JSON-RPC 2.0 request to `http://localhost:3000` using the method `math.add` and the params `[1, 1]`. You will get the result `2`.
 
 [1]: http://expressjs.com/
 [2]: http://koajs.com/
