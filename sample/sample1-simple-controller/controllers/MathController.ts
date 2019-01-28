@@ -3,7 +3,7 @@ import {Method} from "../../../src/decorator/Method";
 import {Params} from "../../../src/decorator/Params";
 
 @Controller("math")
-export class Math {
+export class MathController {
 
     @Method("add")
     foo(@Params() params: Array<number>) {

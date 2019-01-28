@@ -1,8 +1,9 @@
 import "reflect-metadata";
 import {createExpressServer} from "../../src";
+import {MathController} from "./controllers/MathController";
 
 const app = createExpressServer({
-    controllers: [__dirname + "/controllers/*{.js,.ts}"]
+    controllers: [MathController]
 });
 
 app.listen(3000);

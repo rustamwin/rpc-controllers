@@ -13,6 +13,6 @@ indent_style = space
 indent_size = 4
 
 # Matches the exact files either package.json
-[package.json]
+[*.{json,yml}]
 indent_style = space
 indent_size = 2

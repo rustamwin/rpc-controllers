@@ -51,6 +51,10 @@ export interface ApplicationOptions {
      */
     development?: boolean;
 
+    /**
+     * Method name separator. When controller name was set, this option affected, for example 'math.add'
+     * By default "."
+     */
     methodSeparator?: string;
 
     /**
