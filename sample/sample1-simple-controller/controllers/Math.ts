@@ -7,7 +7,7 @@ export class Math {
 
     @Method("add")
     foo(@Params() params: Array<number>) {
-        return new Buffer("safasfas");
+        return params.reduce((prev, curr) => prev + curr);
     }
 
     @Method("hello")
