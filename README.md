@@ -12,6 +12,7 @@ You can use rpc-controllers with [express.js][1] or [koa.js][2].
 
  * [Installation](#installation)
  * [Example of usage](#example-of-usage)
+ * [More examples](#more-usage-examples)
  
  
 ## Installation
@@ -100,6 +101,77 @@ You can use rpc-controllers with [express.js][1] or [koa.js][2].
     
 3. Send a JSON-RPC 2.0 request to `http://localhost:3000` using the method `math.add` and the params `[1, 1]`. You will get the result `2`.
 
+## More usage examples
+
+#### Load all controllers from the given directory
+
+```typescript
+import "reflect-metadata"; // don't forget import this shim!
+import {createExpressServer} from "rpc-controllers";
+
+const app = createExpressServer({
+  controllers: [__dirname + "/controllers/*.js"] // registers all given controllers
+});
+
+// run express application on port 3000
+app.listen(3000);
+```
+
+#### Pre-configure express/koa
+
+If you have, or if you want to create and configure express app separately,
+you can use `useExpressServer` instead of `createExpressServer` function:
+
+```typescript
+import "reflect-metadata";
+import {useExpressServer} from "rpc-controllers";
+import {MathController} from "./MathController";
+
+let express = require("express"); // or you can import it if you have installed typings
+let app = express(); // your created express server
+// app.use() // you can configure it the way you want
+useExpressServer(app, { // register created express server in rpc-controllers
+    controllers: [MathController] // and configure it the way you need (controllers, validation, etc.)
+});
+app.listen(3000); // run your express server
+```
+
+#### Using DI container
+
+`rpc-controllers` supports a DI container out of the box.
+You can inject your services into your controllers. Container must be setup during application bootstrap.
+Here is example how to integrate rpc-controllers with [typedi][4]:
+
+```typescript
+import "reflect-metadata";
+import {createExpressServer, useContainer} from "rpc-controllers";
+import {Container} from "typedi";
+
+// its important to set container before any operation you do with rpc-controllers,
+// including importing controllers
+useContainer(Container);
+
+// create and run express server
+let app = createExpressServer(3000, {
+    controllers: [__dirname + "/controllers/*.js"],
+});
+```
+
+That's it, now you can inject your services into your controllers:
+
+```typescript
+@Controller()
+export class MessageController {
+
+    constructor(private messageRepository: MessageRepository) {
+    }
+
+    // ... controller methods
+
+}
+```
+
 [1]: http://expressjs.com/
 [2]: http://koajs.com/
 [3]: https://www.jsonrpc.org/specification
+[4]: https://github.com/typestack/typedi

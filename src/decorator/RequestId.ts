@@ -1,7 +1,7 @@
 import {getMetadataArgsStorage} from "../index";
-import {ParamsOptions} from "../decorator-options/ParamsOptions";
+import {ParamOptions} from "../decorator-options/ParamOptions";
 
-export function RequestId(options?: ParamsOptions) {
+export function RequestId(options?: ParamOptions) {
     return function (object: Object, methodName: string, index: number) {
         getMetadataArgsStorage().params.push({
             type: "request-id",

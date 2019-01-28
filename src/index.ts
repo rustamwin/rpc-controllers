@@ -13,55 +13,21 @@ import { importClassesFromDirectories } from "./helpers/importClassesFromDirecto
 
 export * from "./container";
 
-// export * from "./decorator/Authorized";
-// export * from "./decorator/Body";
-// export * from "./decorator/BodyParam";
-// export * from "./decorator/ContentType";
-// export * from "./decorator/Controller";
-// export * from "./decorator/CookieParam";
-// export * from "./decorator/CookieParams";
-// export * from "./decorator/Ctx";
-// export * from "./decorator/CurrentUser";
-// export * from "./decorator/Delete";
-// export * from "./decorator/Get";
-// export * from "./decorator/Head";
-// export * from "./decorator/Header";
-// export * from "./decorator/HeaderParam";
-// export * from "./decorator/HeaderParams";
-// export * from "./decorator/HttpCode";
-// export * from "./decorator/Interceptor";
-// export * from "./decorator/JsonController";
-// export * from "./decorator/Location";
-// export * from "./decorator/Method";
-// export * from "./decorator/Middleware";
-// export * from "./decorator/OnNull";
-// export * from "./decorator/OnUndefined";
-// export * from "./decorator/Param";
-// export * from "./decorator/Params";
-// export * from "./decorator/Patch";
-// export * from "./decorator/Post";
-// export * from "./decorator/Put";
-// export * from "./decorator/QueryParam";
-// export * from "./decorator/QueryParams";
-// export * from "./decorator/Redirect";
-// export * from "./decorator/Render";
-// export * from "./decorator/Req";
-// export * from "./decorator/Res";
-// export * from "./decorator/ResponseClassTransformOptions";
-// export * from "./decorator/Session";
-// export * from "./decorator/State";
-// export * from "./decorator/UploadedFile";
-// export * from "./decorator/UploadedFiles";
-// export * from "./decorator/UseAfter";
-// export * from "./decorator/UseBefore";
-// export * from "./decorator/UseInterceptor";
-//
-// export * from "./decorator-options/BodyOptions";
-// export * from "./decorator-options/ParamOptions";
-// export * from "./decorator-options/UploadOptions";
-
 export * from "./rpc-error/RpcError";
+export * from "./rpc-error/InternalError";
+export * from "./rpc-error/InvalidParamsError";
+export * from "./rpc-error/InvalidRequestError";
+export * from "./rpc-error/MethodNotFoundError";
+export * from "./rpc-error/ParseError";
 export * from "./rpc-error/ServerError";
+
+export * from "./decorator/Controller";
+export * from "./decorator/Method";
+export * from "./decorator/RequestId";
+export * from "./decorator/Params";
+export * from "./decorator/Params";
+export * from "./decorator/Param";
+export * from "./decorator-options/ParamOptions";
 
 export * from "./metadata-builder/MetadataArgsStorage";
 export * from "./metadata/MethodMetadata";
@@ -85,10 +51,10 @@ export * from "./driver/koa/KoaDriver";
  * Metadata args storage follows the best practices and stores metadata in a global variable.
  */
 export function getMetadataArgsStorage(): MetadataArgsStorage {
-    if (!(global as any).tsRpcMetadataArgsStorage)
-        (global as any).tsRpcMetadataArgsStorage = new MetadataArgsStorage();
+    if (!(global as any).rpcControllersMetadataArgsStorage)
+        (global as any).rpcControllersMetadataArgsStorage = new MetadataArgsStorage();
 
-    return (global as any).tsRpcMetadataArgsStorage;
+    return (global as any).rpcControllersMetadataArgsStorage;
 }
 
 /**

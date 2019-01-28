@@ -4,6 +4,7 @@ import { BaseDriver } from "./driver/BaseDriver";
 import { ParamMetadata } from "./metadata/ParamMetadata";
 import { isPromiseLike } from "./helpers/isPromiseLike";
 import {InvalidParamsError} from "./rpc-error/InvalidParamsError";
+import {InvalidRequestError} from "./rpc-error/InvalidRequestError";
 
 /**
  * Handles method params.
@@ -57,7 +58,7 @@ export class MethodParamsHandler<T extends BaseDriver> {
                 return Promise.reject(new InvalidParamsError("Params empty"));
 
             } else if (param.name && isValueEmpty) { // regular check for all other parameters // todo: figure out something with param.name usage and multiple things params (query params, upload files etc.)
-                return Promise.reject(new InvalidParamsError("action, param"));
+                return Promise.reject(new InvalidParamsError());
             }
         }
 
@@ -89,12 +90,12 @@ export class MethodParamsHandler<T extends BaseDriver> {
 
                 return !!value;
 
-            // case "date":
-            //     const parsedDate = new Date(value);
-            //     if (isNaN(parsedDate.getTime())) {
-            //         return Promise.reject(new BadRequestError(`${param.name} is invalid! It can't be parsed to date.`));
-            //     }
-            //     return parsedDate;
+            case "date":
+                const parsedDate = new Date(value);
+                if (isNaN(parsedDate.getTime())) {
+                    return Promise.reject(new InvalidRequestError(`${param.name} is invalid! It can't be parsed to date.`));
+                }
+                return parsedDate;
 
             default:
                 if (value && (param.parse || param.isTargetObject)) {

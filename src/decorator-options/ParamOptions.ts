@@ -1,7 +1,7 @@
 import {ClassTransformOptions} from "class-transformer";
 import {ValidationOptions} from "class-validator";
 
-export interface ParamsOptions {
+export interface ParamOptions {
     required?: boolean;
     transform?: ClassTransformOptions;
     validate?: boolean | ValidationOptions;
