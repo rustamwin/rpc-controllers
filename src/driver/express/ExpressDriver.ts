@@ -144,7 +144,7 @@ export class ExpressDriver extends BaseDriver {
             action.next();
         }  else { // send regular result
             action.response.json({
-                "json-rpc": "2.0",
+                jsonrpc: "2.0",
                 id: action.request.body.id,
                 result: result
             });
@@ -163,7 +163,7 @@ export class ExpressDriver extends BaseDriver {
 
         // send error content
         response.json({
-            "json-rpc": "2.0",
+            jsonrpc: "2.0",
             id: null,
             error: this.processJsonError(error),
         });
