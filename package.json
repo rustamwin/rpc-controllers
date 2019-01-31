@@ -1,7 +1,7 @@
 {
   "name": "rpc-controllers",
-  "version": "0.0.3",
-  "description": "Use class-based controllers to create JSON-RPC 2.0 server usege in Express / Koa and TypeScript",
+  "version": "0.0.4",
+  "description": "Use class-based controllers to create JSON-RPC 2.0 server usage in Express / Koa and TypeScript",
   "main": "index.js",
   "private": true,
   "scripts": {
