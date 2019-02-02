@@ -1,8 +1,11 @@
-import {Action} from "../../Action";
 import {MethodMetadata} from "../../metadata/MethodMetadata";
-import {BaseDriver} from "../BaseDriver";
+import {Action} from "../../Action";
 import {ParamMetadata} from "../../metadata/ParamMetadata";
-import {error} from "util";
+import {BaseDriver} from "../BaseDriver";
+import {MethodNotAllowedError} from "../../http-error/MethodNotAllowedError";
+import {MethodNotFoundError} from "../../rpc-error/MethodNotFoundError";
+import {ParseError} from "../../rpc-error/ParseError";
+import {InvalidRequestError} from "../../rpc-error/InvalidRequestError";
 
 /**
  * Integration with koa framework.
@@ -21,11 +24,15 @@ export class KoaDriver extends BaseDriver {
      */
     initialize() {
         const bodyParser = require("koa-bodyparser");
-        this.koa.use(bodyParser());
+        this.koa.use(bodyParser({
+            enableTypes: ["json"]
+        }));
         if (this.cors) {
             const cors = require("kcors");
             if (this.cors === true) {
-                this.koa.use(cors());
+                this.koa.use(cors({
+                    origin: "POST"
+                }));
             } else {
                 this.koa.use(cors(this.cors));
             }
@@ -35,19 +42,45 @@ export class KoaDriver extends BaseDriver {
     /**
      * Registers action in the driver.
      */
-    registerMethod(methods: MethodMetadata[], executeCallback: (methodMetadata: MethodMetadata, action: Action, error: any) => any): void {
+    registerMethod(methods: MethodMetadata[], executeCallback: (error: any, action: Action, method?: MethodMetadata) => any): void {
 
         // prepare route and route handler function
         const route = this.routePrefix + "*";
+        const errorHandler = async (request: any, next: Function) => {
+            try {
+                await next();
+            } catch (e) {
+                console.log(e);
+            }
+        };
         const routeHandler = (context: any, next: () => Promise<any>) => {
             const action: Action = {request: context.request, response: context.response, context, next};
-            const method = methods.find(method => method.fullName === action.request.method);
-            return executeCallback(method, action, error);
+            const method: MethodMetadata = methods.find((methodMetadata) => methodMetadata.fullName === action.request.body.method);
+            try {
+                if (action.request.method.toLowerCase() !== "post") {
+
+                    return next();
+                } else if (!action.request.body || typeof action.request.body !== "object") {
+
+                    return executeCallback(new ParseError(), action, method);
+                } else if (!action.request.body.params) {
+
+                    return executeCallback(new InvalidRequestError(), action, method);
+                } else if (!action.request.body.method || !method) {
+
+                    return executeCallback(new MethodNotFoundError(), action, method);
+                }
+
+                return executeCallback(null, action, method);
+            } catch (e) {
+                return executeCallback(new ParseError(), action, method);
+            }
         };
 
         // finally register action in koa
-        this.router.use(...[
+        this.router.all(...[
             route,
+            errorHandler,
             routeHandler,
         ]);
     }
@@ -107,7 +140,20 @@ export class KoaDriver extends BaseDriver {
             action.response.set(name, method.headers[name]);
         });
 
-        return action.next();
+        if (result === undefined) { // throw NotFoundError on undefined response
+            // todo send error
+
+        } else if (result === null) { // send null response
+            // todo send null response
+            action.next();
+        } else { // send regular result
+            action.response.body = {
+                jsonrpc: "2.0",
+                id: action.request.body.id,
+                result: result
+            };
+            action.next();
+        }
     }
 
     /**
@@ -115,16 +161,17 @@ export class KoaDriver extends BaseDriver {
      */
     handleError(error: any, action: Action) {
         return new Promise((resolve, reject) => {
-            if (this.isDefaultErrorHandlingEnabled) {
+            if (true) {
 
                 // send error content
+                console.log("aasf");
                 action.response.body = this.processJsonError(error);
 
                 // todo set http status
 
                 return resolve();
             }
-            return reject(error);
+            // return reject(error);
         });
     }
 

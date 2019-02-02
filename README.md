@@ -1,7 +1,6 @@
 # rpc-controllers
 
 [![Build Status](https://travis-ci.org/rustamwin/rpc-controllers.svg?branch=master)](https://travis-ci.org/rustamwin/rpc-controllers)
-[![codecov](https://codecov.io/gh/rustamwin/rpc-controllers/branch/master/graph/badge.svg)](https://codecov.io/gh/rustamwin/rpc-controllers)
 [![npm version](https://badge.fury.io/js/rpc-controllers.svg)](https://badge.fury.io/js/rpc-controllers)
 [![Dependency Status](https://david-dm.org/rustamwin/rpc-controllers.svg)](https://david-dm.org/rustamwin/rpc-controllers)
 
@@ -135,6 +134,8 @@ useExpressServer(app, { // register created express server in rpc-controllers
 });
 app.listen(3000); // run your express server
 ```
+
+> Note: Koa driver is experimental
 
 #### Using DI container
 
