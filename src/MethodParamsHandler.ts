@@ -5,6 +5,7 @@ import { ParamMetadata } from "./metadata/ParamMetadata";
 import { isPromiseLike } from "./helpers/isPromiseLike";
 import {InvalidParamsError} from "./rpc-error/InvalidParamsError";
 import {InvalidRequestError} from "./rpc-error/InvalidRequestError";
+import {Request} from "./Request";
 
 /**
  * Handles method params.
@@ -17,7 +18,7 @@ export class MethodParamsHandler<T extends BaseDriver> {
     /**
      * Handles method parameter.
      */
-    handle(action: Action, param: ParamMetadata): Promise<any> | any {
+    handle(request: Request, param: ParamMetadata): Promise<any> | any {
 
        /* if (param.type === "request")
             return action.request;
@@ -29,11 +30,11 @@ export class MethodParamsHandler<T extends BaseDriver> {
             return action.context;
 */
         // get parameter value from request and normalize it
-        const value = this.normalizeParamValue(this.driver.getParamFromRequest(action, param), param);
+        const value = this.normalizeParamValue(this.driver.getParamFromRequest(request, param), param);
         if (isPromiseLike(value))
-            return value.then(value => this.handleValue(value, action, param));
+            return value.then(value => this.handleValue(value, request, param));
 
-        return this.handleValue(value, action, param);
+        return this.handleValue(value, request, param);
     }
 
     // -------------------------------------------------------------------------
@@ -43,11 +44,11 @@ export class MethodParamsHandler<T extends BaseDriver> {
     /**
      * Handles non-promise value.
      */
-    protected handleValue(value: any, action: Action, param: ParamMetadata): Promise<any> | any {
+    protected handleValue(value: any, request: Request, param: ParamMetadata): Promise<any> | any {
 
         // if transform function is given for this param then apply it
         if (param.transform)
-            value = param.transform(action, value);
+            value = param.transform(request, value);
 
         // check cases when parameter is required but its empty and throw errors in this case
         if (param.required) {

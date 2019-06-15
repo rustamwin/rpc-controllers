@@ -3,7 +3,9 @@ import {createExpressServer} from "../../src";
 import {MathController} from "./controllers/MathController";
 
 const app = createExpressServer({
-    controllers: [MathController]
+    controllers: [MathController],
+    cors: true,
+    development: false
 });
 
 app.listen(3000);

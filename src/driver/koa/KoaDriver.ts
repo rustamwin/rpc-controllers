@@ -1,11 +1,11 @@
 import {MethodMetadata} from "../../metadata/MethodMetadata";
-import {Action} from "../../Action";
+import {Request} from "../../Request";
 import {ParamMetadata} from "../../metadata/ParamMetadata";
 import {BaseDriver} from "../BaseDriver";
-import {MethodNotAllowedError} from "../../http-error/MethodNotAllowedError";
 import {MethodNotFoundError} from "../../rpc-error/MethodNotFoundError";
 import {ParseError} from "../../rpc-error/ParseError";
 import {InvalidRequestError} from "../../rpc-error/InvalidRequestError";
+import {Action} from "../../Action";
 
 /**
  * Integration with koa framework.
@@ -42,7 +42,7 @@ export class KoaDriver extends BaseDriver {
     /**
      * Registers action in the driver.
      */
-    registerMethod(methods: MethodMetadata[], executeCallback: (error: any, action: Action, method?: MethodMetadata) => any): void {
+    registerMethods(methods: MethodMetadata[], executeCallback: (error: any, action: Request, method?: MethodMetadata) => any): void {
 
         // prepare route and route handler function
         const route = this.routePrefix + "*";
@@ -62,18 +62,18 @@ export class KoaDriver extends BaseDriver {
                     return next();
                 } else if (!action.request.body || typeof action.request.body !== "object") {
 
-                    return executeCallback(new ParseError(), action, method);
+                    return executeCallback(new ParseError(), context.request.body, method);
                 } else if (!action.request.body.params) {
 
-                    return executeCallback(new InvalidRequestError(), action, method);
+                    return executeCallback(new InvalidRequestError(), context.request.body, method);
                 } else if (!action.request.body.method || !method) {
 
-                    return executeCallback(new MethodNotFoundError(), action, method);
+                    return executeCallback(new MethodNotFoundError(), context.request.body, method);
                 }
 
-                return executeCallback(null, action, method);
+                return executeCallback(null, context.request.body, method);
             } catch (e) {
-                return executeCallback(new ParseError(), action, method);
+                return executeCallback(new ParseError(), context.request.body, method);
             }
         };
 
@@ -96,21 +96,19 @@ export class KoaDriver extends BaseDriver {
     /**
      * Gets param from the request.
      */
-    getParamFromRequest(actionOptions: Action, param: ParamMetadata): any {
-        const context = actionOptions.context;
-        const request: any = actionOptions.request;
+    getParamFromRequest(request: Request, param: ParamMetadata): any {
         switch (param.type) {
             case "method":
-                return request.body.method;
+                return request.method;
 
             case "request-id":
-                return request.body.id;
+                return request.id;
 
             case "param":
-                return request.body.params[param.name];
+                return request.params[param.name];
 
             case "params":
-                return request.body.params;
+                return request.params;
 
         }
     }
@@ -118,12 +116,12 @@ export class KoaDriver extends BaseDriver {
     /**
      * Handles result of successfully executed controller action.
      */
-    handleSuccess(result: any, method: MethodMetadata, action: Action): void {
+    handleSuccess(result: any, method: MethodMetadata, action: Request): object {
 
         // if the action returned the context or the response object itself, short-circuits
-        if (result && (result === action.response || result === action.context)) {
+        /*if (result && (result === action.response || result === action.context)) {
             return action.next();
-        }
+        }*/
 
         // transform result if needed
         result = this.transformResult(result, method, action);
@@ -135,41 +133,36 @@ export class KoaDriver extends BaseDriver {
 
         // todo set http status code
 
-        // apply http headers
-        Object.keys(method.headers).forEach(name => {
-            action.response.set(name, method.headers[name]);
-        });
 
         if (result === undefined) { // throw NotFoundError on undefined response
             // todo send error
 
         } else if (result === null) { // send null response
             // todo send null response
-            action.next();
+            return null;
         } else { // send regular result
-            action.response.body = {
+            return {
                 jsonrpc: "2.0",
-                id: action.request.body.id,
+                id: action.id,
                 result: result
             };
-            action.next();
         }
     }
 
     /**
      * Handles result of failed executed controller action.
      */
-    handleError(error: any, action: Action) {
+    handleError(error: any, action: Request) {
         return new Promise((resolve, reject) => {
             if (true) {
 
                 // send error content
                 console.log("aasf");
-                action.response.body = this.processJsonError(error);
+                const body = this.processJsonError(error);
 
                 // todo set http status
 
-                return resolve();
+                return resolve(body);
             }
             // return reject(error);
         });

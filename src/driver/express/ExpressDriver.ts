@@ -6,6 +6,7 @@ import {MethodNotAllowedError} from "../../http-error/MethodNotAllowedError";
 import {MethodNotFoundError} from "../../rpc-error/MethodNotFoundError";
 import {ParseError} from "../../rpc-error/ParseError";
 import {InvalidRequestError} from "../../rpc-error/InvalidRequestError";
+import {Request} from "../../Request";
 
 /**
  * Integration with express framework.
@@ -45,7 +46,7 @@ export class ExpressDriver extends BaseDriver {
     /**
      * Registers action in the driver.
      */
-    registerMethod(methods: MethodMetadata[], executeCallback: (error: any, action: Action, method?: MethodMetadata) => any): void {
+    registerMethods(methods: MethodMetadata[], executeCallback: (error: any, action: Request, method?: MethodMetadata) => Promise<any>): void {
 
         // middlewares required for this method
         const defaultMiddlewares: any[] = [];
@@ -54,33 +55,43 @@ export class ExpressDriver extends BaseDriver {
 
         defaultMiddlewares.push(function (err: any, request: any, response: any, next: Function) {
             if (err) {
-                return executeCallback(new ParseError(), {request, response, next});
+                console.log(err);
+                response.json(executeCallback(new ParseError(), request.body));
             }
         });
 
         // prepare route and route handler function
         const route = this.routePrefix + "*";
-        const routeHandler = function routeHandler(request: any, response: any, next: Function) {
-            const action = {request, response, next};
-            // todo batch requests
 
-            const method: MethodMetadata = methods.find((methodMetadata) => methodMetadata.fullName === request.body.method);
+        const callbackExecutor = (body: Request, action: Action) => {
+            const method: MethodMetadata = methods.find((methodMetadata) => methodMetadata.fullName === body.method);
+            if (!body || typeof body !== "object") {
 
-            if (request.method.toLowerCase() !== "post") {
+                return executeCallback(new ParseError(), body, method);
+            } else if (!body.params) {
 
-                return next(method, action, new MethodNotAllowedError());
-            } else if (!request.body || typeof request.body !== "object") {
+                return executeCallback(new InvalidRequestError(), body, method);
+            } else if (!body.method || !method) {
 
-                return executeCallback(new ParseError(), action, method);
-            } else if (!request.body.params) {
-
-                return executeCallback(new InvalidRequestError(), action, method);
-            } else if (!request.body.method || !method) {
-
-                return executeCallback(new MethodNotFoundError(), action, method);
+                return executeCallback(new MethodNotFoundError(), body, method);
             }
 
-            return executeCallback(null, action, method);
+            return executeCallback(null, body, method);
+        };
+
+        const routeHandler = async function routeHandler(request: any, response: any, next: Function) {
+            const action = {request, response, next};
+            // todo batch requests
+            if (request.method.toLowerCase() !== "post") {
+                throw new MethodNotAllowedError();
+            }
+
+            if (request.body instanceof Array) {
+                const results: any[] = await Promise.all(request.body.map((body: Request) => callbackExecutor(body, action)));
+                response.json(results);
+            } else {
+                callbackExecutor(request.body, action).then(result => response.json(result));
+            }
         };
 
         // finally register method in express
@@ -100,20 +111,19 @@ export class ExpressDriver extends BaseDriver {
     /**
      * Gets param from the request.
      */
-    getParamFromRequest(action: Action, param: ParamMetadata): any {
-        const request: any = action.request;
+    getParamFromRequest(request: Request, param: ParamMetadata): any {
         switch (param.type) {
             case "request-id":
-                return request.body.id;
+                return request.id;
 
             case "method":
-                return request.body.method;
+                return request.method;
 
             case "param":
-                return request.body.params[param.name];
+                return request.params[param.name];
 
             case "params":
-                return request.body.params;
+                return request.params;
 
         }
     }
@@ -121,52 +131,43 @@ export class ExpressDriver extends BaseDriver {
     /**
      * Handles result of successfully executed controller action.
      */
-    handleSuccess(result: any, method: MethodMetadata, action: Action): void {
+    handleSuccess(result: any, method: MethodMetadata, request: Request): object {
         // if the method returned the response object itself, short-circuits
-        if (result && result === action.response) {
+        /*if (result && result === action.response) {
             action.next();
             return;
-        }
+        }*/
 
         // transform result if needed
-        result = this.transformResult(result, method, action);
-
-        // apply http headers
-        Object.keys(method.headers).forEach(name => {
-            action.response.header(name, method.headers[name]);
-        });
+        result = this.transformResult(result, method, request);
 
         if (result === undefined) { // throw NotFoundError on undefined response
             // todo send error
 
         } else if (result === null) { // send null response
             // todo send null response
-            action.next();
-        }  else { // send regular result
-            action.response.json({
+            return null;
+        } else { // send regular result
+            return {
                 jsonrpc: "2.0",
-                id: action.request.body.id,
+                id: request.id,
                 result: result
-            });
-            action.next();
+            };
+            // action.next();
         }
     }
 
     /**
      * Handles result of failed executed controller method.
      */
-    handleError(error: any, action: Action): any {
-        const response: any = action.response;
-
-        // set http code
-        // note that we can't use error instanceof HttpError properly anymore because of new typescript emit process
+    handleError(error: any, request: Request): any {
 
         // send error content
-        response.json({
+        return {
             jsonrpc: "2.0",
             id: null,
             error: this.processJsonError(error),
-        });
+        };
     }
 
     /**
