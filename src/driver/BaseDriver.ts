@@ -107,9 +107,6 @@ export abstract class BaseDriver {
         } else if (result instanceof Buffer || result instanceof Uint8Array) { // check if it's binary data (typed array)
             result = new Buffer(result as any).toString("binary");
         }
-        /* else if (result.pipe instanceof Function) {
-                    result.pipe(action.response);
-                }*/
 
         return result;
     }

@@ -7,6 +7,7 @@ import {MethodNotFoundError} from "../../rpc-error/MethodNotFoundError";
 import {ParseError} from "../../rpc-error/ParseError";
 import {InvalidRequestError} from "../../rpc-error/InvalidRequestError";
 import {Request} from "../../Request";
+import {runInSequence} from "../../helpers/runInSequence";
 
 /**
  * Integration with express framework.
@@ -55,7 +56,6 @@ export class ExpressDriver extends BaseDriver {
 
         defaultMiddlewares.push(function (err: any, request: any, response: any, next: Function) {
             if (err) {
-                console.log(err);
                 response.json(executeCallback(new ParseError(), request.body));
             }
         });
@@ -65,10 +65,10 @@ export class ExpressDriver extends BaseDriver {
 
         const callbackExecutor = (body: Request, action: Action) => {
             const method: MethodMetadata = methods.find((methodMetadata) => methodMetadata.fullName === body.method);
-            if (!body || typeof body !== "object") {
+            if (!body || (typeof body === "string" && !JSON.parse(body))) {
 
                 return executeCallback(new ParseError(), body, method);
-            } else if (!body.params) {
+            } else if (!body.params || (typeof body.method !== "string") ) {
 
                 return executeCallback(new InvalidRequestError(), body, method);
             } else if (!body.method || !method) {
@@ -81,13 +81,14 @@ export class ExpressDriver extends BaseDriver {
 
         const routeHandler = async function routeHandler(request: any, response: any, next: Function) {
             const action = {request, response, next};
-            // todo batch requests
             if (request.method.toLowerCase() !== "post") {
                 throw new MethodNotAllowedError();
             }
 
             if (request.body instanceof Array) {
-                const results: any[] = await Promise.all(request.body.map((body: Request) => callbackExecutor(body, action)));
+                if (!request.body.length)
+                    executeCallback(new InvalidRequestError(), request.body).then(result => response.json(result));
+                const results: any[] = await runInSequence(request.body, (body: Request) => callbackExecutor(body, action));
                 response.json(results);
             } else {
                 callbackExecutor(request.body, action).then(result => response.json(result));
@@ -132,11 +133,6 @@ export class ExpressDriver extends BaseDriver {
      * Handles result of successfully executed controller action.
      */
     handleSuccess(result: any, method: MethodMetadata, request: Request): object {
-        // if the method returned the response object itself, short-circuits
-        /*if (result && result === action.response) {
-            action.next();
-            return;
-        }*/
 
         // transform result if needed
         result = this.transformResult(result, method, request);
