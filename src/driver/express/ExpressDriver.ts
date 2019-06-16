@@ -8,6 +8,7 @@ import {ParseError} from "../../rpc-error/ParseError";
 import {InvalidRequestError} from "../../rpc-error/InvalidRequestError";
 import {Request} from "../../Request";
 import {runInSequence} from "../../helpers/runInSequence";
+import {InvalidParamsError} from "../../rpc-error/InvalidParamsError";
 
 /**
  * Integration with express framework.
@@ -68,15 +69,19 @@ export class ExpressDriver extends BaseDriver {
             if (!body || (typeof body === "string" && !JSON.parse(body))) {
 
                 return executeCallback(new ParseError(), body, method);
-            } else if (!body.params || (typeof body.method !== "string") ) {
+            } else if (!body.params || (typeof body.method !== "string")) {
 
                 return executeCallback(new InvalidRequestError(), body, method);
             } else if (!body.method || !method) {
 
                 return executeCallback(new MethodNotFoundError(), body, method);
+            } else if ((body.params instanceof Array && body.params.length < 1)
+                || (body.params instanceof Object && Object.keys(body.params).length < 1)) {
+
+                return executeCallback(new InvalidParamsError(), body, method);
             }
 
-            return executeCallback(null, body, method);
+            return executeCallback(null, body, method).then(result => body.id ? result : undefined);
         };
 
         const routeHandler = async function routeHandler(request: any, response: any, next: Function) {
@@ -88,10 +93,11 @@ export class ExpressDriver extends BaseDriver {
             if (request.body instanceof Array) {
                 if (!request.body.length)
                     executeCallback(new InvalidRequestError(), request.body).then(result => response.json(result));
-                const results: any[] = await runInSequence(request.body, (body: Request) => callbackExecutor(body, action));
+                let results = await runInSequence(request.body, (body: Request) => callbackExecutor(body, action));
+                results = results.filter((result) => result);
                 response.json(results);
             } else {
-                callbackExecutor(request.body, action).then(result => response.json(result));
+                callbackExecutor(request.body, action).then(result => result ? response.json(result) : undefined); // todo: refactor
             }
         };
 
@@ -149,7 +155,6 @@ export class ExpressDriver extends BaseDriver {
                 id: request.id,
                 result: result
             };
-            // action.next();
         }
     }
 

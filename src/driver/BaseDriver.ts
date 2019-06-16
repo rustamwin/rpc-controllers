@@ -160,19 +160,4 @@ export abstract class BaseDriver {
         return Object.keys(processedError).length > 0 ? processedError : undefined;
     }
 
-    protected merge(obj1: any, obj2: any): any {
-        const result: any = {};
-        for (let i in obj1) {
-            if ((i in obj2) && (typeof obj1[i] === "object") && (i !== null)) {
-                result[i] = this.merge(obj1[i], obj2[i]);
-            } else {
-                result[i] = obj1[i];
-            }
-        }
-        for (let i in obj2) {
-            result[i] = obj2[i];
-        }
-        return result;
-    }
-
 }
