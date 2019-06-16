@@ -143,11 +143,7 @@ export class ExpressDriver extends BaseDriver {
         // transform result if needed
         result = this.transformResult(result, method, request);
 
-        if (result === undefined) { // throw NotFoundError on undefined response
-            // todo send error
-
-        } else if (result === null) { // send null response
-            // todo send null response
+        if (result === null || result === undefined) { // send null response
             return null;
         } else { // send regular result
             return {
@@ -166,7 +162,7 @@ export class ExpressDriver extends BaseDriver {
         // send error content
         return {
             jsonrpc: "2.0",
-            id: null,
+            id: error instanceof MethodNotFoundError ? request.id : null,
             error: this.processJsonError(error),
         };
     }
