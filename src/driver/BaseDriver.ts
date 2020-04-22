@@ -2,10 +2,10 @@ import {classToPlain, ClassTransformOptions} from "class-transformer";
 
 import {MethodMetadata} from "../metadata/MethodMetadata";
 import {ParamMetadata} from "../metadata/ParamMetadata";
-import {Action} from "../Action";
 import {RpcError} from "../rpc-error/RpcError";
 import {InternalError} from "../rpc-error/InternalError";
 import {ServerError} from "../rpc-error/ServerError";
+import {Request} from "../Request";
 
 /**
  * Base driver functionality for all other drivers.
@@ -62,9 +62,9 @@ export abstract class BaseDriver {
     abstract initialize(): void;
 
     /**
-     * Registers method in the driver.
+     * Registers all methods in the driver.
      */
-    abstract registerMethod(methods: MethodMetadata[], executeCallback: (error: any, action: Action, method?: MethodMetadata) => any): void;
+    abstract registerMethods(methods: MethodMetadata[], executeCallback: (error: any, request: Request, method?: MethodMetadata) => any): void;
 
     /**
      * Registers all routes in the framework.
@@ -74,23 +74,23 @@ export abstract class BaseDriver {
     /**
      * Gets param from the request.
      */
-    abstract getParamFromRequest(methodOptions: Action, param: ParamMetadata): any;
+    abstract getParamFromRequest(methodOptions: Request, param: ParamMetadata): any;
 
     /**
      * Defines an algorithm of how to handle error during executing controller method.
      */
-    abstract handleError(error: any, action: Action): any;
+    abstract handleError(error: any, request: Request): any;
 
     /**
      * Defines an algorithm of how to handle success result of executing controller method.
      */
-    abstract handleSuccess(result: any, method: MethodMetadata, action: Action): void;
+    abstract handleSuccess(result: any, method: MethodMetadata, request: Request): void;
 
     // -------------------------------------------------------------------------
     // Protected Methods
     // -------------------------------------------------------------------------
 
-    protected transformResult(result: any, method: MethodMetadata, action: Action): any {
+    protected transformResult(result: any, method: MethodMetadata, request: Request): any {
         // check if we need to transform result
         const shouldTransform = (this.useClassTransformer && result != null) // transform only if enabled and value exist
             && result instanceof Object // don't transform primitive types (string/number/boolean)
@@ -106,8 +106,6 @@ export abstract class BaseDriver {
             result = classToPlain(result, action);
         } else if (result instanceof Buffer || result instanceof Uint8Array) { // check if it's binary data (typed array)
             result = new Buffer(result as any).toString("binary");
-        } else if (result.pipe instanceof Function) {
-            result.pipe(action.response);
         }
 
         return result;
@@ -147,9 +145,7 @@ export abstract class BaseDriver {
 
         } else {
             processedError.code = new ServerError().rpcCode;
-
-            if (error.message)
-                processedError.message = error.message;
+            processedError.message = new ServerError().message;
 
             processedError.data = {};
             if (error.stack && this.developmentMode)
@@ -162,21 +158,6 @@ export abstract class BaseDriver {
         }
 
         return Object.keys(processedError).length > 0 ? processedError : undefined;
-    }
-
-    protected merge(obj1: any, obj2: any): any {
-        const result: any = {};
-        for (let i in obj1) {
-            if ((i in obj2) && (typeof obj1[i] === "object") && (i !== null)) {
-                result[i] = this.merge(obj1[i], obj2[i]);
-            } else {
-                result[i] = obj1[i];
-            }
-        }
-        for (let i in obj2) {
-            result[i] = obj2[i];
-        }
-        return result;
     }
 
 }

@@ -6,6 +6,7 @@ import {MethodMetadata} from "./metadata/MethodMetadata";
 import {Action} from "./Action";
 import {ApplicationOptions} from "./ApplicationOptions";
 import {MethodNotFoundError} from "./rpc-error/MethodNotFoundError";
+import {Request} from "./Request";
 
 export class Application<T extends BaseDriver> {
 
@@ -53,7 +54,7 @@ export class Application<T extends BaseDriver> {
         controllers.forEach(controller => {
             methods.push(...controller.methods);
         });
-        this.driver.registerMethod(methods, (error: any, options: Action, methodMetadata?: MethodMetadata) => {
+        this.driver.registerMethods(methods, (error: any, options: Request, methodMetadata?: MethodMetadata) => {
             if (error) {
                 return this.driver.handleError(error, options);
             }
@@ -66,42 +67,41 @@ export class Application<T extends BaseDriver> {
     /**
      * Executes given controller method.
      */
-    protected executeMethod(methodMetadata: MethodMetadata, action: Action) {
+    protected executeMethod(methodMetadata: MethodMetadata, request: Request) {
 
         // compute all params
         const paramsPromises = methodMetadata.params
             .sort((param1, param2) => param1.index - param2.index)
-            .map(param => this.paramsHandler.handle(action, param));
+            .map(param => this.paramsHandler.handle(request, param));
 
         // after all params are computed
         return Promise.all(paramsPromises).then(params => {
 
             // execute method and handle result
             const result  = methodMetadata.callMethod(params);
-            return this.handleCallMethodResult(result, methodMetadata, action);
+            return this.handleCallMethodResult(result, methodMetadata, request);
 
         }).catch(error => {
-
             // otherwise simply handle error without method execution
-            return this.driver.handleError(error, action);
+            return this.driver.handleError(error, request);
         });
     }
 
     /**
      * Handles result of the method method execution.
      */
-    protected handleCallMethodResult(result: any, method: MethodMetadata, action: Action): any {
+    protected handleCallMethodResult(result: any, method: MethodMetadata, request: Request): any {
         if (isPromiseLike(result)) {
             return result
                 .then((data: any) => {
-                    return this.handleCallMethodResult(data, method, action);
+                    return this.handleCallMethodResult(data, method, request);
                 })
                 .catch((error: any) => {
-                    return this.driver.handleError(error, action);
+                    return this.driver.handleError(error, request);
                 });
         } else {
 
-            return this.driver.handleSuccess(result, method, action);
+            return this.driver.handleSuccess(result, method, request);
         }
     }
 

@@ -4,6 +4,7 @@ import {ParamMetadataArgs} from "./args/ParamMetadataArgs";
 import {ParamType} from "./types/ParamType";
 import {ClassTransformOptions} from "class-transformer";
 import {Action} from "../Action";
+import {Request} from "../Request";
 
 /**
  * Method Parameter metadata.
@@ -77,7 +78,7 @@ export class ParamMetadata {
     /**
      * Transforms the value.
      */
-    transform: (action: Action, value?: any) => Promise<any>|any;
+    transform: (request: Request, value?: any) => Promise<any>|any;
 
     /**
      * Additional parameter options.
