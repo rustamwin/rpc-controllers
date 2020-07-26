@@ -41,7 +41,7 @@
     "@types/mocha": "^8.0.0",
     "@types/node": "^10.12.18",
     "@types/sinon": "^7.0.3",
-    "body-parser": "^1.18.3",
+    "body-parser": "^1.19.0",
     "chai": "^4.2.0",
     "chai-as-promised": "^7.1.1",
     "chakram": "^1.5.0",
