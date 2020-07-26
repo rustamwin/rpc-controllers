@@ -56,7 +56,7 @@
     "gulp-sourcemaps": "^2.6.4",
     "gulp-tslint": "^8.1.4",
     "gulp-typescript": "^5.0.0",
-    "gulpclass": "^0.1.2",
+    "gulpclass": "^0.2.0",
     "jayson": "^2.1.1",
     "kcors": "^2.2.2",
     "koa": "^2.6.2",
