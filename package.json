@@ -60,7 +60,7 @@
     "jayson": "^3.3.4",
     "kcors": "^2.2.2",
     "koa": "^2.6.2",
-    "koa-bodyparser": "^4.2.1",
+    "koa-bodyparser": "^4.3.0",
     "koa-router": "^7.4.0",
     "mocha": "^8.2.1",
     "ts-node": "^8.10.2",
