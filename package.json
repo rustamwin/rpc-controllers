@@ -57,7 +57,7 @@
     "gulp-tslint": "^8.1.4",
     "gulp-typescript": "^5.0.1",
     "gulpclass": "^0.2.0",
-    "jayson": "^3.3.4",
+    "jayson": "^3.4.4",
     "kcors": "^2.2.2",
     "koa": "^2.13.0",
     "koa-bodyparser": "^4.3.0",
